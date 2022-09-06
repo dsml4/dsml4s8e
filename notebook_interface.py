@@ -3,7 +3,6 @@ from pathlib import Path
 import json
 
 from . import lib_cfg
-from .project import Project
 
 
 @dataclass
@@ -12,40 +11,48 @@ class Ids:
     artefacts: list[str]
 
 
-def _id_str(pipeline: str,
-            component: str,
-            notebook: str,
-            entity: str,
-            ):
-    return '{}.{}.{}.{}'.format(
+def _get_json_file(nb_name: str):
+    return f'{lib_cfg.nb_interfaces_dir}/{nb_name}.json'
+
+
+def _get_nb_id(
+        pipeline: str,
+        component: str,
+        notebook: str):
+    return '{}.{}.{}'.format(
         pipeline,
         component,
-        notebook,
-        entity)
+        notebook)
 
 
-def _get_artefact_ids(artefact_names: list[str], prj: Project):
-    return [_id_str(
-           prj.pipeline,
-           prj.component,
-           prj.notebook,
-           an)
-           for an in artefact_names]
-
-
-def _get_json_file(name: str):
-    return f'{lib_cfg.nb_interfaces_dir}/{name}.json'
+def _get_artefact_ids(nb_id: str, artefact_names: list[str]):
+    return [f'{nb_id}.{a}' for a in artefact_names]
 
 
 class NotebookInterface:
     def __init__(
             self,
             artefact_names: list[str],
-            prj: Project
+            nb_full_name: str
             ) -> None:
-        self.prj = prj
-        self.name = self.prj.notebook
-        self.idis = Ids([], _get_artefact_ids(artefact_names, self.prj))
+        """
+        In case of interactive mode nb_full_name is emty then
+        is gotten from ipynbname.path()
+        """
+        if not nb_full_name:
+            import ipynbname
+            path = ipynbname.path()
+        else:
+            path = Path(nb_full_name)
+        parts = path.parts
+
+        self.id = _get_nb_id(
+            pipeline=parts[-3],
+            component=parts[-2],
+            notebook=path.stem
+        )
+
+        self.idis = Ids([], _get_artefact_ids(self.id, artefact_names))
         self.path_to_interface_json = ''
 
     def __str__(self):
@@ -59,38 +66,35 @@ class NotebookInterface:
     def _is_valid_id(self):
         pass
 
-    def set_resource_componennt_link(
+    @property
+    def name(self):
+        return self.id.split('.')[-1]
+
+    def set_resource_component_link(
             self,
-            pipeline_name: str,
-            component_name: str,
-            notebook_name: str,
+            nb_id: str,
             resource_names: list[str],
             ) -> None:
 
-        for r in resource_names:
-            resource_id = _id_str(pipeline_name,
-                                  component_name,
-                                  notebook_name,
-                                  r)
+        for resource_id in _get_artefact_ids(nb_id, resource_names):
             if resource_id in self.idis.resources:
-                # TODO: worning
-                pass
-            self.idis.resources.append(resource_id)
+                print(f'worning: {resource_id} has already exist in ')
+            else:
+                self.idis.resources.append(resource_id)
 
     def serialize(self):
         """
-        serialize netebook interface to create DAG
-        abc
+        serialize netebook interface to create DAG subsequently
         """
         path = lib_cfg.nb_interfaces_dir
         Path(path).mkdir(parents=True, exist_ok=True)
-        with open(_get_json_file(self.name), 'w') as outf:
+        with open(_get_json_file(self.id), 'w') as outf:
             json.dump(asdict(self.idis), outf, indent=4)
 
     @staticmethod
-    def deserialize(name: str, prj: Project):
+    def deserialize(name: str, nb_full_name: str):
         with open(_get_json_file(name), 'r') as inf:
             idis = json.load(inf)
-        nbi = NotebookInterface(idis['artefacts'], prj)
+        nbi = NotebookInterface(idis['artefacts'], nb_full_name)
         nbi.idis.resources = idis['resources']
         return nbi
