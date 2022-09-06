@@ -1,6 +1,16 @@
 from collections import defaultdict
 from typing import DefaultDict
-from dataclasses import dataclass, make_dataclass, fields
+from dataclasses import make_dataclass
+from os.path import exists
+import json
+
+_storage_cfg_json = '/home/jovyan/work/storage.json'
+if exists(_storage_cfg_json):
+    with open(_storage_cfg_json) as f:
+        storage_cfg = json.load(f)
+        _storage_url_prefix = storage_cfg['prefix']
+else:
+    _storage_url_prefix = '/home/jovyan/data'
 
 
 def _reduce_leafs(
