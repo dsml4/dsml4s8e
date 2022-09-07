@@ -2,16 +2,19 @@
 # dsml4s8e
 data science ml flow standalone
 
-## Entity IDs 
+## Pipeline and workflow organization
+Will be described the main entities behind pipeline development life cycle (entities of workflow)
+
+### Entity IDs 
 pipeliile.component.nb.entity
 
-## Mapping entity IDs to project structure
+### Mapping entity IDs to project structure
 pipeliile.component.nb.entity ->
 work/<stage>/pipeliile/component/nb/entity
 
-## Mapping entity IDs to storage url
+### Mapping entity IDs to storage url
 
-## IDs lineage
+### IDs lineage
 Development stage:
   1. from procect catalog (pipeline/component) to id (pipeline.component)
   2. the running component updates run_config in directory run_params
@@ -20,7 +23,7 @@ Development stage:
 Test/OPs stage:
   1. gets from git run_params
 
-## Papermill params lineage
+### Papermill params lineage
 Development stage:
   1. a user define in notebook cell with tag params
   2. the running notebook updates run_config
@@ -29,8 +32,10 @@ Development stage:
 Test/OPs stage:
   1. gets from git run_params
 
- ## Development life cycle stage (dlc_satge)
+ ### Development life cycle stage (dlc_satge)
   dlc_satge: dev/test/ops
   dlc_satge sets in job.<dlc_satge>.py - autorun script
   
+ ## Mechanisms of passing entities of workflow
+  The dlc_satge passes to the notebook with papermill params. Implemented in runner.py.
   
