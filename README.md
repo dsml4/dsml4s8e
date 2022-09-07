@@ -1,3 +1,4 @@
+
 # dsml4s8e
 data science ml flow standalone
 
@@ -27,3 +28,9 @@ Development stage:
 
 Test/OPs stage:
   1. gets from git run_params
+
+ ## Development life cycle stage (dlc_satge)
+  dlc_satge: dev/test/ops
+  dlc_satge sets in job.<dlc_satge>.py - autorun script
+  
+  
