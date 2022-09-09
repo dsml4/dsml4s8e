@@ -5,8 +5,8 @@ import json
 from . import lib_cfg
 
 
-@dataclass
-class Ids:
+@dataclass(frozen=True)
+class EntityIDs:
     resources: list[str]
     artefacts: list[str]
 
@@ -32,6 +32,7 @@ def _get_artefact_ids(nb_id: str, artefact_names: list[str]):
 class NotebookInterface:
     def __init__(
             self,
+            resource_names: list[str],
             artefact_names: list[str],
             nb_full_name: str
             ) -> None:
@@ -45,6 +46,7 @@ class NotebookInterface:
         else:
             path = Path(nb_full_name)
         parts = path.parts
+        self.nb_full_name = str(path)
 
         self.id = _get_nb_id(
             pipeline=parts[-3],
@@ -52,7 +54,11 @@ class NotebookInterface:
             notebook=path.stem
         )
 
-        self.idis = Ids([], _get_artefact_ids(self.id, artefact_names))
+        self.entityIDs = EntityIDs(
+            resource_names,
+            _get_artefact_ids(self.id, artefact_names)
+            )
+
         self.path_to_interface_json = ''
 
     def __str__(self):
@@ -77,10 +83,10 @@ class NotebookInterface:
             ) -> None:
 
         for resource_id in _get_artefact_ids(nb_id, resource_names):
-            if resource_id in self.idis.resources:
+            if resource_id in self.entityIDs.resources:
                 print(f'worning: {resource_id} has already exist in ')
             else:
-                self.idis.resources.append(resource_id)
+                self.entityIDs.resources.append(resource_id)
 
     def serialize(self):
         """
@@ -88,13 +94,15 @@ class NotebookInterface:
         """
         path = lib_cfg.nb_interfaces_dir
         Path(path).mkdir(parents=True, exist_ok=True)
-        with open(_get_json_file(self.id), 'w') as outf:
-            json.dump(asdict(self.idis), outf, indent=4)
+        with open(_get_json_file(self.name), 'w') as outf:
+            json.dump(asdict(self.entityIDs), outf, indent=4)
 
     @staticmethod
     def deserialize(name: str, nb_full_name: str):
         with open(_get_json_file(name), 'r') as inf:
-            idis = json.load(inf)
-        nbi = NotebookInterface(idis['artefacts'], nb_full_name)
-        nbi.idis.resources = idis['resources']
+            ids = json.load(inf)
+        nbi = NotebookInterface(
+            ids['resources'],
+            ids['artefacts'],
+            nb_full_name)
         return nbi
