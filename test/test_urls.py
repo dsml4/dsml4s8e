@@ -42,12 +42,10 @@ def test_make_urls():
     assert (comp_urls.pip2.comp2.nb2.entity2 == 'url_entity2')
     assert (comp_urls.pip2.comp2.nb2.entity3 == 'url_entity3')
 
+    assert (urls.make_urls([]) == None)
+
 
 def test_id2url():
     id_ = 'pip1.comp1.nb1.entity1'
-    p, c, nb, e = id_.split('.')
-    stage = 'dev'
-    suffix = '/data'
-    run_id = 'id'
-    url = f'{suffix}/{stage}/{p}/{c}/{nb}/{run_id}/{e}/'
-    assert (True)
+    url = urls.id2url(id_, 'dev', 'run_id', '/data')
+    assert (url == '/data/dev/pip1/comp1/run_id/nb1/entity1')
