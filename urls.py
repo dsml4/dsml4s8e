@@ -77,6 +77,8 @@ def _pack_leafs_list_to_obj(
 
 
 def make_urls(path_leaf_dict: dict[str: str]) -> object:
+    if not path_leaf_dict:
+        return None
     path_leaf_obj = path_leaf_dict
     while type(path_leaf_obj).__name__ != class_urls_name:
         path_leaf_obj = _pack_leafs_list_to_obj(
@@ -95,4 +97,20 @@ def id2url(
     cdlc_stage - stage of component developmetn cycle (dev, test, ops)
     url: <prefix>/<pipeline>/<comp>/<nb>/<entity>
     """
-    pass
+    p, c, nb, e = entity_id.split('.')
+    return f'{prefix}/{cdlc_stage}/{p}/{c}/{run_id}/{nb}/{e}'
+
+
+def nb_id2url(
+        nb_id: str,
+        cdlc_stage: str,
+        run_id: str,
+        prefix: str
+        ) -> str:
+    """
+    entity_id: pipeline.comp.nb.enity
+    cdlc_stage - stage of component developmetn cycle (dev, test, ops)
+    url: <prefix>/<pipeline>/<comp>/<nb>
+    """
+    p, c, nb = nb_id.split('.')
+    return f'{prefix}/{cdlc_stage}/{p}/{c}/{run_id}/{nb}'
