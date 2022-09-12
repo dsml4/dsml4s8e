@@ -23,14 +23,10 @@ def is_result_cell(cell):
     return cell.cell_type == 'code' and 'results' in cell.metadata.get('tags', [])
 
 
-def extract_run_results(nn: nbformat.notebooknode.NotebookNode):
-    # nn = nbformat.read(nb_full_name, as_version=4)
-    for cell in nn.cells:
-        if is_result_cell(cell):
-            output = cell['outputs']
-            if output['name'] == 'stdout':
-                return output['text']
-    return ''
+def get_cell_tags(cell):
+    if cell.cell_type == 'code':
+        return cell.metadata.get('tags', [])
+    return []
 
 
 def run_notebooks(
@@ -51,4 +47,3 @@ def run_notebooks(
         result_json = extract_run_results(nn)
         nb_url = result_json['nb_url']
         storag.sava_artefact(out_nb_full_name, nb_url)
-

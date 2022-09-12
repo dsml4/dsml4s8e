@@ -29,6 +29,14 @@ def _get_artefact_ids(nb_id: str, artefact_names: list[str]):
     return [f'{nb_id}.{a}' for a in artefact_names]
 
 
+def exec_interface_cell(source: str, parameters):
+    parameters = parameters
+    exec_output = {'nbi': 0}
+    source = f'{source}\nexec_output["nbi"] = nbi\n'
+    exec(source)
+    return exec_output['nbi']
+
+
 class NotebookInterface:
     def __init__(
             self,
@@ -40,11 +48,8 @@ class NotebookInterface:
         In case of interactive mode nb_full_name is emty then
         is gotten from ipynbname.path()
         """
-        if not nb_full_name:
-            import ipynbname
-            path = ipynbname.path()
-        else:
-            path = Path(nb_full_name)
+
+        path = Path(nb_full_name)
         parts = path.parts
         self.nb_full_name = str(path)
 
@@ -88,21 +93,4 @@ class NotebookInterface:
             else:
                 self.entityIDs.resources.append(resource_id)
 
-    def serialize(self):
-        """
-        serialize netebook interface to create DAG subsequently
-        """
-        path = lib_cfg.nb_interfaces_dir
-        Path(path).mkdir(parents=True, exist_ok=True)
-        with open(_get_json_file(self.name), 'w') as outf:
-            json.dump(asdict(self.entityIDs), outf, indent=4)
 
-    @staticmethod
-    def deserialize(name: str, nb_full_name: str):
-        with open(_get_json_file(name), 'r') as inf:
-            ids = json.load(inf)
-        nbi = NotebookInterface(
-            ids['resources'],
-            ids['artefacts'],
-            nb_full_name)
-        return nbi
