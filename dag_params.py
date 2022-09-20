@@ -12,7 +12,11 @@ def uniq_name(entity_id: str):
 
 class NbOpParams:
     def __init__(self, nb_id: str):
+        """
+            nb_id format: <component>.<nb>
+        """
         wd = os.getcwd()
+        wd = str(Path(wd).parent)
         nb_path = nb_id.replace('.', '/')
         self.nb_path = f'{wd}/{nb_path}.ipynb'
         self.compwd = str(Path(self.nb_path).parent)
