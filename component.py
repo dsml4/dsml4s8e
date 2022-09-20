@@ -2,25 +2,20 @@ from dataclasses import dataclass
 import os
 import json
 import git
-from matplotlib.pyplot import get
 
-from . import lib_cfg
+
 from .notebook_interface import NotebookInterface
 from .storage import StorageABC
 from . import urls
+from .runner import new_run_id
 from datetime import datetime
 import glob
-from .runner import run_id
 # component serialize: notebook run parameters  
 
 
 def get_last_run_id(resource_id, storage_prefix):
     # glob.glob('/home/jovyan/data/dev/pipeline_example/load/*/test/data1/*')
     return 'last_run'
-
-
-def _get_json_file(name: str):
-    return f'{lib_cfg.run_parameter}/{name}.json'
 
 
 @dataclass(frozen=True)
@@ -34,16 +29,17 @@ class NbRunInfo:
 
 class ComponentEnv:
     def __init__(self, env_params: dict, storage: StorageABC) -> None:
-        self.run_id = env_params.get('run_id',  run_id)
+        self.run_id = env_params.get('run_id',  new_run_id())
         self.cdlc_stage = env_params.get('cdlc_stage', 'dev')
         self.storage = storage
-        self._resources_dict = None
-        self._artefacts_dict = None
+        self._resources_dict = {}
+        self._artefacts_dict = {}
 
     def _make_ids_urls_dict(
             self,
             ids: list[str],
-            run_id: str
+            run_id: str,
+            cdlc_stage: str
             ) -> dict[str: str]:
         if run_id == '':
             print(run_id)
@@ -51,8 +47,8 @@ class ComponentEnv:
         return dict(
             [(id, urls.id2url(
                 id,
-                self.cdlc_stage,
-                self.run_id,
+                cdlc_stage,
+                run_id,
                 self.storage.url_prefix
                 ))
                 for id in ids])
@@ -60,15 +56,21 @@ class ComponentEnv:
     def get_nb_run_info(
             self,
             nbi: NotebookInterface,
-            params: dict
+            params: dict,
+            res_cdlc_stage: str = ''
             ) -> NbRunInfo:
+    # resource (id, cdlc_stage) 
         if nbi.entityIDs.resources:
+            if res_cdlc_stage == '':
+                res_cdlc_stage = self.cdlc_stage
             self._resources_dict = self._make_ids_urls_dict(
                 nbi.entityIDs.resources,
-                un_id='')
+                run_id='',
+                cdlc_stage=res_cdlc_stage)
         self._artefacts_dict = self._make_ids_urls_dict(
             nbi.entityIDs.artefacts,
-            self.run_id)
+            self.run_id,
+            cdlc_stage=self.cdlc_stage)
 
         nb_url = urls.nb_id2url(
             nbi.id,
@@ -85,27 +87,12 @@ class ComponentEnv:
             )
         return nb_run_info
 
-    @property
-    def cache(self):
-        return f'{os.getcwd()}/cache'
-
     def validate(self):
         return True
 
-    def seve_artefacts(self):
-        ...
-
-    @property
-    def run_params_dir(self):
-        if self.cdlc_stage == 'dev':
-            rpd = f'{os.getcwd()}/run_parameters'
-            os.makedirs(rpd, exist_ok=True)
-            return rpd
-        return ''
-
-    def update_parameters(self):
-        rpd = self.run_params_dir
-        if rpd:
-            with open(rpd, 'r') as infile:
-                params = json.load(infile)
-                print(params)
+    def to_json(self):
+        run_info = {
+            'artefacts': self._artefacts_dict,
+            'resources': self._resources_dict
+        }
+        return json.dumps(run_info, indent=4)
