@@ -1,18 +1,13 @@
 from dataclasses import dataclass, asdict
 from pathlib import Path
 import json
-
-from . import lib_cfg
+import nbformat
 
 
 @dataclass(frozen=True)
 class EntityIDs:
     resources: list[str]
     artefacts: list[str]
-
-
-def _get_json_file(nb_name: str):
-    return f'{lib_cfg.nb_interfaces_dir}/{nb_name}.json'
 
 
 def _get_nb_id(
@@ -29,25 +24,13 @@ def _get_artefact_ids(nb_id: str, artefact_names: list[str]):
     return [f'{nb_id}.{a}' for a in artefact_names]
 
 
-def exec_interface_cell(source: str, parameters):
-    parameters = parameters
-    exec_output = {'nbi': 0}
-    source = f'{source}\nexec_output["nbi"] = nbi\n'
-    exec(source)
-    return exec_output['nbi']
-
-
 class NotebookInterface:
     def __init__(
             self,
             resource_names: list[str],
             artefact_names: list[str],
             nb_full_name: str
-            ) -> None:
-        """
-        In case of interactive mode nb_full_name is emty then
-        is gotten from ipynbname.path()
-        """
+            ):
 
         path = Path(nb_full_name)
         parts = path.parts
@@ -64,13 +47,11 @@ class NotebookInterface:
             _get_artefact_ids(self.id, artefact_names)
             )
 
-        self.path_to_interface_json = ''
-
     def __str__(self):
-        json_file_name = _get_json_file(self.name)
-        with open(json_file_name, 'r') as inf:
-            interface_info = json.load(inf)
-        interface_info['json_file'] = json_file_name
+        interface_info = {
+            "resources": self.entityIDs.resources,
+            "artefacts": self.entityIDs.artefacts
+        }
         return json.dumps(interface_info, indent=4)
 
     # TODO: make abc
@@ -81,16 +62,38 @@ class NotebookInterface:
     def name(self):
         return self.id.split('.')[-1]
 
-    def set_resource_component_link(
-            self,
-            nb_id: str,
-            resource_names: list[str],
-            ) -> None:
 
-        for resource_id in _get_artefact_ids(nb_id, resource_names):
-            if resource_id in self.entityIDs.resources:
-                print(f'worning: {resource_id} has already exist in ')
-            else:
-                self.entityIDs.resources.append(resource_id)
+def exec_interface_cell(source: str, parameters) -> NotebookInterface:
+    parameters = parameters
+    exec_output = {}
+    source = f'{source}\nexec_output["nbi"] = nbi\n'
+    exec(source)
+    return exec_output['nbi']
 
 
+def exec_params_cell(source: str) -> dict:
+    exec_output = {}
+    source = f'{source}\nexec_output["p"] = parameters\n'
+    exec(source)
+    return exec_output['p']
+
+
+def get_cell_tags(cell):
+    if cell.cell_type == 'code':
+        return cell.metadata.get('tags', [])
+    return []
+
+
+def extract_from_nb(nb_full_name: str):
+    nb = nbformat.read(nb_full_name, as_version=4)
+    parameters = {}
+    for cell in nb.cells:
+        tags = []
+        if cell.cell_type == 'code':
+            tags = get_cell_tags(cell)
+        if 'parameters' in tags:
+            parameters = exec_params_cell(cell.source)
+        if parameters and 'interface' in tags:
+            parameters['nb_full_name'] = nb_full_name
+            nbi = exec_interface_cell(cell.source, parameters)
+            return nbi, parameters
