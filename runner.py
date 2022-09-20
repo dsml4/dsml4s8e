@@ -1,21 +1,24 @@
 import papermill
 from datetime import datetime
 import os
-import nbformat
 from .storage import StorageABC
+from pathlib import Path
 
 
-run_id = f"run-{datetime.now().strftime('%y-%m-%d-%H%M%S')}"
+def new_run_id():
+    return f"run-{datetime.now().strftime('%y-%m-%d-%H%M%S')}"
+
 
 env_params = {
-    "run_id": run_id,
-    "cdlc_stage": "ops"
+    'run_id': 'run_id',
+    'cdlc_stage': 'ops'
 }
 
+
 papermill_params = {
-    "parameters": {
+    'parameters': {
     },
-    "env_params": env_params
+    'env_params': env_params
 }
 
 
@@ -29,21 +32,21 @@ def get_cell_tags(cell):
     return []
 
 
-def run_notebooks(
-        notebooks: list[str],
-        storag: StorageABC
-        ):
-    component_wd = os.getcwd()
+def make_cache_dir(component_wd: str, run_id: str):
     component_cd = f'{component_wd}/cache/{run_id}'
     os.makedirs(component_cd, exist_ok=True)
-    for nb in notebooks:
-        nb_full_name = f'{component_wd}/{nb}.ipynb'
-        out_nb_full_name = f'{component_cd}/{nb}.ipynb'
-        papermill_params['parameters']['nb_full_name'] = nb_full_name
-        nn = papermill.execute.execute_notebook(
-            nb_full_name,
-            out_nb_full_name,
-            parameters=papermill_params)
-        result_json = extract_run_results(nn)
-        nb_url = result_json['nb_url']
-        storag.sava_artefact(out_nb_full_name, nb_url)
+    return component_cd
+
+
+def run_notebook(
+        nb_path: str,
+        papermill_params: dict,
+        component_cd: str
+        ):
+    nb_name = Path(nb_path).name
+    out_nb_path = f'{component_cd}/{nb_name}'
+    nn = papermill.execute.execute_notebook(
+        nb_path,
+        out_nb_path,
+        parameters=papermill_params)
+    return out_nb_path
