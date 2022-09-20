@@ -9,9 +9,7 @@ def test_make_ids_urls_dict_():
     )
     res = ['pipeline_example.load.test.data1',
            'pipeline_example.load.test.data2']
-    ids_urs = cenv._make_ids_urls_dict(res, cenv.run_id)
-    etalon = f'/home/jovyan/data/dev/pipeline_example/load/{cenv.run_id}/test/data1'
+    ids_urs = cenv._make_ids_urls_dict(res, cenv.run_id, cenv.cdlc_stage)
+    etalon = f'{cenv.storage.url_prefix}/dev/pipeline_example/load/'
+    etalon += f'{cenv.run_id}/test/data1'
     assert (ids_urs['pipeline_example.load.test.data1'] == etalon)
-
-    ids_urs = cenv._make_ids_urls_dict([], cenv.run_id)
-    assert (ids_urs == {})
