@@ -29,23 +29,51 @@ def test_pack_leafs_list_to_obj():
     assert (obj_class_name == 'Pip2Comp2Nb2')
 
 
-def test_make_urls():
-    id_urls = {
+def test_make_data_obj_urls_from_dict():
+    key_urls = {
         'pip1.comp1.nb1.entity1': 'url_entity1',
         'pip1.comp1.nb2.entity2': 'url_entity2',
         'pip2.comp2.nb2.entity2': 'url_entity2',
         'pip2.comp2.nb2.entity3': 'url_entity3'
     }
-    comp_urls = urls.make_urls(id_urls)
+    comp_urls = urls.make_data_obj_urls_from_dict(key_urls)
     assert (comp_urls.pip1.comp1.nb1.entity1 == 'url_entity1')
     assert (comp_urls.pip1.comp1.nb2.entity2 == 'url_entity2')
     assert (comp_urls.pip2.comp2.nb2.entity2 == 'url_entity2')
     assert (comp_urls.pip2.comp2.nb2.entity3 == 'url_entity3')
 
-    assert (urls.make_urls([]) == None)
+    assert (not urls.make_data_obj_urls_from_dict([]))
 
 
 def test_id2url():
     id_ = 'pip1.comp1.nb1.entity1'
-    url = urls.id2url(id_, 'dev', 'run_id', '/data')
+    url = urls.data_key2url(id_, 'dev', 'run_id', '/data')
     assert (url == '/data/dev/pip1/comp1/run_id/nb1/entity1')
+
+
+def test_get_urls_from_local():
+    local_var = {
+        'entity1': '/data/dev/pip1/comp1/run_id/nb1/entity1',
+        'entity2': '/data/dev/pip1/comp1/run_id/nb1/entity2',
+        'a': 'val'
+    }
+    resources = [
+        'pip1.comp1.nb1.entity1',
+        'pip1.comp1.nb1.entity2'
+    ]
+    resources_dict = {}
+    resources_dict = urls.get_urls_from_local(
+        local_var,
+        resources
+    )
+    assert (resources_dict['pip1.comp1.nb1.entity1'] == '/data/dev/pip1/comp1/run_id/nb1/entity1')
+
+    local_var = {
+        'entity1': '/data/dev/pip1/comp1/run_id/nb1/entity1',
+        'a': 'val'
+    }
+    resources_dict = urls.get_urls_from_local(
+        local_var,
+        resources
+    )
+    assert (not resources_dict)

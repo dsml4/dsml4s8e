@@ -1,8 +1,11 @@
-from dagster import job, op, get_dagster_logger, Field, Out, In
+from dagster import Out, In
 import os
 from pathlib import Path
-
-from dsml4s8e.notebook_interface import NotebookInterface, extract_from_nb
+import nbformat
+from dsml4s8e.nb_data_keys import (
+    NotebookDataKeys,
+    data_key2dag_name
+    )
 
 
 def uniq_name(entity_id: str):
@@ -10,50 +13,61 @@ def uniq_name(entity_id: str):
     return name
 
 
-class NbOpParams:
-    def __init__(self, nb_id: str):
-        """
-            nb_id format: <component>.<nb>
-        """
-        wd = os.getcwd()
-        wd = str(Path(wd).parent)
-        nb_path = nb_id.replace('.', '/')
-        self.nb_path = f'{wd}/{nb_path}.ipynb'
-        self.compwd = str(Path(self.nb_path).parent)
-        self.nbi, self.parameters = extract_from_nb(self.nb_path)
-        self.out_ = {}
-        self.ins_ = {}
-        self.description = nb_id
-        self.run_id = ''
-
-    @property
-    def out(self):
-        if self.out_:
-            return self.out_
-        for a in self.nbi.entityIDs.artefacts:
-            self.out_[uniq_name(a)] = Out(str)
-        return self.out_
-
-    @property
-    def ins(self):
-        if not self.ins_:
-            return self.ins_
-        for r in self.nbi.entityIDs.resources:
-            self.ins_[uniq_name(r)] = In(str)
-        return self.ins_
+def exec_params_cell(source: str) -> dict:
+    exec_output = {}
+    source = f'{source}\nexec_output["op_params"] = dag_op_params\n'
+    exec(source)
+    return exec_output['op_params']
 
 
-def get_op_params(nb_id: str):
-    dag_params = {}
-    dag_params['description'] = nb_id
-    wd = os.getcwd()
-    nb_path = nb_id.replace('.', '/')
-    nb_path = f'{wd}/{nb_path}.ipynb'
-    nb_path = nb_path
-    nbi, parameters = extract_from_nb(nb_path)
-    out = {}
-    for a in nbi.entityIDs.artefacts:
-        out[uniq_name(a)] = Out(str)
-    if out:
-        dag_params['out'] = out
-    return dag_params
+def get_cell_tags(cell):
+    if cell.cell_type == 'code':
+        return cell.metadata.get('tags', [])
+    return []
+
+
+def nb_ins2dagster_ins(nb_ins):
+    return {
+        dag_name: In(str)
+        for dag_name in nb_ins.values()
+    }
+
+
+def nb_outs2dagster_outs(outs, nb_path):
+    nb_data_keys = NotebookDataKeys(
+        ins_data_key_dag_name={},
+        outs=outs,
+        nb_path=nb_path
+    )
+    return {
+        data_key2dag_name(k): Out(str)
+        for k in nb_data_keys.data_keys.outs
+    }
+
+
+def extract_op_params_from_nb(nb_path: str):
+    nb = nbformat.read(nb_path, as_version=4)
+    params = {}
+    for cell in nb.cells:
+        tags = []
+        if cell.cell_type == 'code':
+            tags = get_cell_tags(cell)
+        if 'dagstermill' in tags:
+            params = exec_params_cell(cell.source)
+    if 'ins' in params:
+        params['ins'] = nb_ins2dagster_ins(
+            nb_ins=params['ins'],
+        )
+    if 'outs' in params:
+        params['outs'] = nb_outs2dagster_outs(
+            outs=params['outs'],
+            nb_path=nb_path
+        )
+    return params
+
+
+def get_op_config(dag_op_params):
+    return {
+        k: v.default_value for k, v in
+        dag_op_params['config_schema'].items()
+    }

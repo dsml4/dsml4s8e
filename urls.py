@@ -76,7 +76,7 @@ def _pack_leafs_list_to_obj(
     return d_out
 
 
-def make_urls(path_leaf_dict: dict[str: str]) -> object:
+def make_data_obj_urls_from_dict(path_leaf_dict: dict[str: str]) -> object:
     if not path_leaf_dict:
         return None
     path_leaf_obj = path_leaf_dict
@@ -86,31 +86,32 @@ def make_urls(path_leaf_dict: dict[str: str]) -> object:
     return path_leaf_obj
 
 
-def id2url(
-        entity_id: str,
+def data_key2url(
+        key: str,
         cdlc_stage: str,
         run_id: str,
         prefix: str
         ) -> str:
     """
-    entity_id: pipeline.comp.nb.enity
-    cdlc_stage - stage of component developmetn cycle (dev, test, ops)
-    url: <prefix>/<pipeline>/<comp>/<nb>/<entity>
+    format of data_key: <pipeline>.<component>.<notebook>.<name_data_opj>
+    cdlc_stage is a stage of component development life cycle: dev, test, ops
+    url: <prefix>/<pipeline>/<component>/<notebook>/<name_data_opj>
     """
-    p, c, nb, e = entity_id.split('.')
+    p, c, nb, e = key.split('.')
     return f'{prefix}/{cdlc_stage}/{p}/{c}/{run_id}/{nb}/{e}'
 
 
-def nb_id2url(
-        nb_id: str,
-        cdlc_stage: str,
-        run_id: str,
-        prefix: str
-        ) -> str:
-    """
-    entity_id: pipeline.comp.nb.enity
-    cdlc_stage - stage of component developmetn cycle (dev, test, ops)
-    url: <prefix>/<pipeline>/<comp>/<nb>
-    """
-    p, c, nb = nb_id.split('.')
-    return f'{prefix}/{cdlc_stage}/{p}/{c}/{run_id}/{nb}'
+def url2data_key(url: str) -> str:
+    p = url.split('/')
+    return '.'.join((p[-5], p[-4], p[-2], p[-1]))
+
+
+def get_urls_from_local(local_vars: dict,
+                        res_id: list[str]) -> dict:
+    short_names_set = set([name.split('.')[-1] for name in res_id])
+    res = {url2data_key(local_vars[var_name]): url
+           for var_name, url in local_vars.items()
+           if var_name in short_names_set}
+    if set(res.keys()) == set(res_id):
+        return res
+    return None

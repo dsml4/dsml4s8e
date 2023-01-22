@@ -1,10 +1,11 @@
-from .storage import StorageABC
+from .storage_catalog import StorageCatalogABC
 import pandas as pd
 import os
 from pathlib import Path
+from typing import List
 
 
-class LoacalStorage(StorageABC):
+class LoacalStorageCatalog(StorageCatalogABC):
 
     def __init__(self, prefix):
         self._prefix = prefix
@@ -13,11 +14,11 @@ class LoacalStorage(StorageABC):
     def url_prefix(self):
         return self._prefix
 
-    def catalog_validation(self) -> bool:
+    def is_valid(self) -> bool:
         return True
 
-    def sava_artefact(self, url, local_path) -> bool:
-        return True
+    def get_urls(self, prefix: str) -> List[str]:
+        return []
 
 
 def write_pandas_df(df: pd.DataFrame, url: str):
