@@ -2,13 +2,13 @@
 # dsml4s8e
 data science ml flow standalone
 dsml4s8e is a python library that aims to
- *simplify building of dagster pipelines from notebooks
+ 1. simplify building of dagster pipelines from notebooks (loading notebooks to dagit)
 
 ## Pipeline and workflow organization
 Will be described the main entities behind pipeline development life cycle (entities of workflow)
 
 ### Data object key 
-<pipeline>.<component>.<nb>.<data_obj_name>
+pipeline.component.nb.data_obj_name
 
 ### Mapping data object key to project structure
 pipeliile.component.nb.data_obj_name ->
