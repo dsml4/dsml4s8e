@@ -3,7 +3,7 @@
 **D**ata **S**cience **ML** flow(**4**) **s**tandalon(**8**)**e**
 
 
-dsml4s8e is a python library that aims to
+dsml4s8e is a python library that aims to:
  1. simplify building of dagster pipelines from notebooks (loading notebooks to dagit)
 
 It makes possible following workflow:
