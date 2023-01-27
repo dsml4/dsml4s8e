@@ -1,33 +1,21 @@
 
 # dsml4s8e
 data science ml flow standalone
+dsml4s8e is a python library that aims to
+ *simplify building of dagster pipelines from notebooks
 
 ## Pipeline and workflow organization
 Will be described the main entities behind pipeline development life cycle (entities of workflow)
 
-### Entity IDs 
-pipeliile.component.nb.entity
+### Data object key 
+<pipeline>.<component>.<nb>.<data_obj_name>
 
-### Mapping entity IDs to project structure
-pipeliile.component.nb.entity ->
-work/<stage>/pipeliile/component/nb/entity
+### Mapping data object key to project structure
+pipeliile.component.nb.data_obj_name ->
+work/<dlc_stage>/pipeliile/component/nb
+nb - notebook generate data obj
+### Mapping data object key storage url
 
-### Mapping entity IDs to storage url
-
-### IDs lineage
-Development stage:
-  1. from procect catalog (pipeline/component) to id (pipeline.component)
-  2. the running component updates run_config in directory run_params
-  3. push run_config to git
-
-Test/OPs stage:
-  1. gets from git run_params
-
-### Papermill params lineage
-Development stage:
-  1. a user define in notebook cell with tag params
-  2. the running notebook updates run_config
-  3. push run_config to git
 
 Test/OPs stage:
   1. gets from git run_params
