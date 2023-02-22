@@ -13,7 +13,15 @@ It makes possible following workflow:
 
 ![nb_parameters_cell](https://user-images.githubusercontent.com/1010096/220533153-45c8dd82-64e7-445c-aedc-c9787de30916.png)
 
+
+
 ```python
+# in dag.py pipeline code
+
+from dagstermill import define_dagstermill_op
+from dsml4s8e.dag_params import extract_op_params_from_nb
+
+
 op_1_params = extract_op_params_from_nb("/home/jovyan/work/dev/pipeline_example/data_load/nb_1.ipynb")
 op1 = define_dagstermill_op(**op_1_params)
 
@@ -21,6 +29,8 @@ op1 = define_dagstermill_op(**op_1_params)
 op_2_params = extract_op_params_from_nb("/home/jovyan/work/dev/pipeline_example/data_load/nb_2.ipynb")
 op2 = define_dagstermill_op(**op_2_params)
 ```
+
+
 
 ![Job_dagstermill_pipeline](https://user-images.githubusercontent.com/1010096/220530371-eb3c12f2-f70b-4d7c-a6c9-9f38fc391b7f.svg)
 
