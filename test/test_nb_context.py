@@ -54,7 +54,10 @@ def test_nb_context():
             'outs': ['data1']
         },
         local_vars={},
-        storage_catalog=local_storage.LoacalStorageCatalog('/home/jovyan/data')
+        storage_catalog=local_storage.LoacalStorageCatalog(
+            '/home/jovyan/data',
+            dagster_context=dagster_context
+            )
     )
     etalon_url = '/home/jovyan/data/dev/pipeline_example/data_load/0000/dagstermill/data1'
     assert (nb_context_._outs_dict['pipeline_example.data_load.dagstermill.data1'] ==

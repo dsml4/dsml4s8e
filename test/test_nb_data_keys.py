@@ -10,5 +10,5 @@ def test_nb_data_keys():
     )
     assert (nb_data_keys_.id ==
             'pipeline_example.data_load.dagstermill')
-    assert (nb_data_keys_.data_keys.outs[0] ==
+    assert (nb_data_keys_.outs.keys[0] ==
             'pipeline_example.data_load.dagstermill.data1')
