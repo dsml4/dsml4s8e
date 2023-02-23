@@ -11,29 +11,28 @@ It makes possible following workflow:
  2. Loade the notebooks into dagit (build a pipeline)
  3. Configure and run the pipeline many times in vary environments and on vary infrastructure 
 
-![nb_parameters_cell](https://user-images.githubusercontent.com/1010096/220533153-45c8dd82-64e7-445c-aedc-c9787de30916.png)
-
+![op_parameters_cell](https://user-images.githubusercontent.com/1010096/221004539-a13f6dac-056c-4633-94bf-ef995c857da8.png)
 
 
 ```python
 # in dag.py pipeline code
 
 from dagstermill import define_dagstermill_op
-from dsml4s8e.dag_params import extract_op_params_from_nb
+from dsml4s8e.extract_dag_params_from_nb import get_dagstermill_op_params
 
 
-op_1_params = extract_op_params_from_nb("/home/jovyan/work/dev/pipeline_example/data_load/nb_1.ipynb")
-op1 = define_dagstermill_op(**op_1_params)
+op_1_params = get_dagstermill_op_params("/home/jovyan/work/dev/pipeline_example/data_load/nb_1.ipynb")
+op1 = define_dagstermill_op(**op_1_params,
+                            save_notebook_on_failure=True)
 
 
-op_2_params = extract_op_params_from_nb("/home/jovyan/work/dev/pipeline_example/data_load/nb_2.ipynb")
-op2 = define_dagstermill_op(**op_2_params)
+op_2_params = get_dagstermill_op_params("/home/jovyan/work/dev/pipeline_example/data_load/nb_2.ipynb")
+op2 = define_dagstermill_op(**op_2_params,
+                            save_notebook_on_failure=True)
+
 ```
 
-
-
-![Job_dagstermill_pipeline](https://user-images.githubusercontent.com/1010096/220530371-eb3c12f2-f70b-4d7c-a6c9-9f38fc391b7f.svg)
-
+![Job_dagstermill_pipeline](https://user-images.githubusercontent.com/1010096/221005076-7ba56646-8a9e-4d75-bbaf-e68ba04d036d.svg)
 
 
 ## Pipeline and workflow organization
