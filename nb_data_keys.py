@@ -11,8 +11,7 @@ class DataKeys:
     ins: list of input data keys
     outs: list of output data keys
     '''
-    ins: List[str]
-    outs: List[str]
+    keys: tuple[str]
 
 
 def _get_nb_id(
@@ -57,15 +56,13 @@ class NotebookDataKeys:
             notebook=path.stem
         )
 
-        self.data_keys = DataKeys(
-            ins_data_key_dag_name.keys(),
-            _get_artefact_ids(self.id, outs)
-            )
+        self.ins = DataKeys(ins_data_key_dag_name.keys())
+        self.outs = DataKeys(_get_artefact_ids(self.id, outs))
 
     def __str__(self):
         interface_info = {
-            "ins": self.data_keys.ins,
-            "outs": self.data_keys.outs
+            "ins": self.ins,
+            "outs": self.outs
         }
         return json.dumps(interface_info, indent=4)
 
