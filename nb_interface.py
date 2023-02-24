@@ -19,10 +19,13 @@ class NbDataUrl:
 
 
 def get_ins_key_data_obj(local_vars: dict, dag_op_ins: dict) -> dict:
-    return {
+    ins_key_data_obj = {
         k: local_vars[k_alias]
         for k, k_alias in dag_op_ins.items()
     }
+    for k in dag_op_ins.values():
+        del local_vars[k]
+    return ins_key_data_obj
 
 
 def make_urls_dict(
@@ -49,7 +52,7 @@ def get_nb_path(dag_context):
         return dag_context.op_def.tags['notebook_path']
 
 
-class NBContext:
+class NBInterface:
     def __init__(self,
                  dagster_context: dict,
                  dag_op_params: dict,
@@ -85,11 +88,11 @@ class NBContext:
     def validate(self):
         return True
 
-    def send_outs_data_urls_to_next_stage(self, yield_result):
-        print('outs dagster params:')
+    def send_outs_data_urls_to_next_stages(self, yield_result):
+        print('outs:')
         for data_obj_key, url in self._outs_dict.items():
             dagster_name = data_key2dag_name(data_obj_key)
-            print(dagster_name)
+            print(f'{dagster_name} = "{url}"')
             yield_result(
                 url,
                 output_name=dagster_name
