@@ -18,32 +18,6 @@ class NbDataUrl:
     outs: object
 
 
-def get_ins_key_data_obj(local_vars: dict, dag_op_ins: dict) -> dict:
-    ins_key_data_obj = {
-        k: local_vars[k_alias]
-        for k, k_alias in dag_op_ins.items()
-    }
-    for k in dag_op_ins.values():
-        del local_vars[k]
-    return ins_key_data_obj
-
-
-def make_urls_dict(
-        keys: list[str],
-        run_id: str,
-        cdlc_stage: str,
-        url_prefix: str
-        ) -> dict[str: str]:
-    return dict(
-        [(k, urls.data_key2url(
-            k,
-            cdlc_stage,
-            run_id,
-            url_prefix
-            ))
-            for k in keys])
-
-
 def get_nb_path(dag_context):
     if not dag_context.op_def.tags:
         import ipynbname
@@ -68,10 +42,12 @@ class NBInterface:
         self._ins_dict = {}
         self._outs_dict = {}
         if 'ins' in dag_op_params:
-            self._ins_dict = get_ins_key_data_obj(
+            self._ins_dict = storage_catalog.get_in_urls(
                 local_vars=local_vars,
                 dag_op_ins=dag_op_params['ins']
             )
+            for k in dag_op_params['ins'].values():
+                del local_vars[k]
         if 'outs' in dag_op_params:
             self._outs_dict = storage_catalog.get_out_urls(
                 data_kyes=self.nb_data_keys.outs,
