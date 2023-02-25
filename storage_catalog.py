@@ -7,16 +7,10 @@ def _get_in_urls(
         local_vars: Dict[str, str],
         op_parameters_ins: Dict[str, str]
         ) -> Dict[str, str]:
-    """
-    op_parameters_ins = op_parameters['ins']
-    op_parameters is a variable from notebook cell with tag op_parameters
-    local_vars = locals()
-    """
-    key_url = {
-        k: local_vars[k_alias]
+    return {
+        k: local_vars.get(k_alias, '')
         for k, k_alias in op_parameters_ins.items()
     }
-    return key_url
 
 
 class StorageCatalogABC(ABC):
@@ -48,8 +42,8 @@ class StorageCatalogABC(ABC):
                     ) -> Dict[str, str]:
         """
         op_parameters_ins = op_parameters['ins']
-        op_parameters is a variable from notebook cell with tag op_parameters
-        local_vars = locals()
+        op_parameters is a dict from notebook cell with tag op_parameters
+        local_vars = locals() # Local symbol Table
+        'ins': {'key': 'nb_data1'} -> {key: local_vars['nb_data1']}
         """
         return _get_in_urls(local_vars, op_parameters_ins)
-        ...

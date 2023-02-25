@@ -44,7 +44,7 @@ class NBInterface:
         if 'ins' in dag_op_params:
             self._ins_dict = storage_catalog.get_in_urls(
                 local_vars=local_vars,
-                dag_op_ins=dag_op_params['ins']
+                op_parameters_ins=dag_op_params['ins']
             )
             for k in dag_op_params['ins'].values():
                 del local_vars[k]

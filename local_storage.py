@@ -7,6 +7,19 @@ from pathlib import Path
 from typing import List, Dict
 
 
+class MissedInsParameters(Exception):
+    def __init__(self, missed_vars, op_parameters_ins):
+        keys_str = '/n'.join(missed_vars)
+        self.message = f"""
+        variables with keys:
+        {keys_str}
+        from dict in cell 'op_parameters'
+        {op_parameters_ins}
+        must be declared in cell 'parameters'
+        """
+        super().__init__(self.message)
+
+
 class LoacalStorageCatalog(StorageCatalogABC):
 
     def __init__(self,
@@ -37,6 +50,16 @@ class LoacalStorageCatalog(StorageCatalogABC):
                         )
                  ) for k in data_kyes.keys]
             )
+
+    def get_in_urls(self,
+                    local_vars: Dict[str, str],
+                    op_parameters_ins: Dict[str, str]
+                    ) -> Dict[str, str]:
+        res = super().get_in_urls(local_vars, op_parameters_ins)
+        empty_vals = [k for k, v in res.items() if not v]
+        if len(empty_vals) > 0:
+            raise MissedInsParameters(empty_vals, op_parameters_ins)
+        return res
 
 
 def write_pandas_df(df: pd.DataFrame, url: str):

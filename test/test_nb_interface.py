@@ -23,9 +23,10 @@ def test_nb_interface():
     nb_interface_ = nb_interface.NBInterface(
         dagster_context=dagster_context,
         dag_op_params={
-            'outs': ['data1']
+            'outs': ['data1'],
+            'ins': {'pipeline_example.data': 'var_name'}
         },
-        local_vars={},
+        local_vars={'var_name': 'val'},
         storage_catalog=local_storage.LoacalStorageCatalog(
             '/home/jovyan/data',
             dagster_context=dagster_context
@@ -38,3 +39,5 @@ def test_nb_interface():
     data_urls = nb_interface_.get_data_urls()
     assert (data_urls.outs.pipeline_example.data_load.dagstermill.data1 ==
             etalon_url)
+    assert (data_urls.ins.pipeline_example.data ==
+            'val')
