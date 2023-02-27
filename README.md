@@ -1,17 +1,23 @@
 
 # dsml4s8e
-**D**ata **S**cience **ML** flow(**4**) **s**tandalon(**8**)**e**
+**D**ata **S**cience / **ML** flow(**4**) **s**tandalon(**8**)**e**
 
 
 dsml4s8e is a python library that aims to:
- 1. simplify building of dagster pipelines from notebooks (loading notebooks to dagit)
+ 1. simplify building of Dagster pipelines from **standalon** notebooks
+ 2. standardize a structure of ML/DS a pipeline project to easy sharing
+ 3. manage experiments data and artefacts
 
 It makes possible following workflow:
- 1. Develop notebooks
- 2. Loade the notebooks into dagit (build a pipeline)
- 3. Configure and run the pipeline many times in vary environments and on vary infrastructure 
+ 1. define a project structure for your pipeline and a structure of the pipeline catalog
+ 2. develop **standalon** Jupyter notebooks with clear interface
+ 3. loade the notebooks into dagit (build a pipeline)
+ 4. configure and run the pipeline many times in vary environments and on vary infrastructure 
 
 ![op_parameters_cell](https://user-images.githubusercontent.com/1010096/221004539-a13f6dac-056c-4633-94bf-ef995c857da8.png)
+
+
+![nb_1](https://user-images.githubusercontent.com/1010096/221655435-3b01fb49-7ff9-4e53-82b8-ad0922fc2136.png)
 
 
 ```python
@@ -35,26 +41,4 @@ op2 = define_dagstermill_op(**op_2_params,
 ![Job_dagstermill_pipeline](https://user-images.githubusercontent.com/1010096/221005076-7ba56646-8a9e-4d75-bbaf-e68ba04d036d.svg)
 
 
-## Pipeline and workflow organization
-Will be described the main entities behind pipeline development life cycle (entities of workflow)
-
-### Data object key 
-pipeline.component.nb.data_obj_name
-
-### Mapping data object key to project structure
-pipeliile.component.nb.data_obj_name ->
-work/<dlc_stage>/pipeliile/component/nb
-nb - notebook generate data obj
-### Mapping data object key storage url
-
-
-Test/OPs stage:
-  1. gets from git run_params
-
- ### Development life cycle stage (dlc_satge)
-  dlc_satge: dev/test/ops
-  dlc_satge sets in job.<dlc_satge>.py - autorun script
-  
- ## Mechanisms of passing entities of workflow
-  The dlc_satge passes to the notebook with papermill params. Implemented in runner.py.
   
