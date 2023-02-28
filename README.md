@@ -16,9 +16,14 @@ It makes possible following workflow:
 
 ![op_parameters_cell](https://user-images.githubusercontent.com/1010096/221004539-a13f6dac-056c-4633-94bf-ef995c857da8.png)
 
+A cell tagged 'op parameters' responsible for integration standalone notebook with Dagster. In a load stage dictionary of parameters from this cell is trasformed to magstermill format and set to fuction define_dagstermill_op from dagstermill library.
 
 ![nb_1](https://user-images.githubusercontent.com/1010096/221655435-3b01fb49-7ff9-4e53-82b8-ad0922fc2136.png)
 
+A cell tagged 'parameters' responsible for notebook parameterization. Variables declared in this cell use NBInterface from dsml4s8e.local_storage.
+In lounche(run) stage Dagstermill replace cell target with 'parameter' teg to injected-parameters.
+
+LoacalStorageCatalog class resposible for structure of data catalog it is fully customizable.
 
 ```python
 # in dag.py pipeline code
