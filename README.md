@@ -4,15 +4,15 @@
 
 
 dsml4s8e is a python library that aims to:
- 1. simplify building of Dagster pipelines from **standalon** notebooks
- 2. standardize a structure of ML/DS a pipeline project to easy sharing
- 3. manage experiments data and artefacts
+ 1. Simplify building of Dagster pipelines from **standalon** notebooks
+ 2. Standardize a structure of ML/DS a pipeline project to easy sharing
+ 3. Manage experiments data and artefacts
 
 It makes possible following workflow:
- 1. define a project structure for your pipeline and a structure of the pipeline catalog
- 2. develop **standalon** Jupyter notebooks with clear interface
- 3. loade the notebooks into dagit (build a pipeline)
- 4. configure and run the pipeline many times in vary environments and on vary infrastructure 
+ 1. Define a project structure for your pipeline and a structure of the pipeline catalog
+ 2. Develop **standalon** Jupyter notebooks with clear interface
+ 3. Loade the notebooks into dagit (build a pipeline)
+ 4. Configure and run the pipeline many times in vary environments and on vary infrastructure 
 
 ![op_parameters_cell](https://user-images.githubusercontent.com/1010096/221004539-a13f6dac-056c-4633-94bf-ef995c857da8.png)
 
