@@ -18,7 +18,7 @@ It makes possible following workflow:
 
 ![op_parameters_cell](https://user-images.githubusercontent.com/1010096/221832042-f1129a96-45eb-4678-a541-cab8c9e72c89.png)
 
-A cell tagged 'op parameters' responsible for integration standalone notebook with Dagster. In a load stage dictionary of parameters from this cell is trasformed to dagstermill format and sets to fuction define_dagstermill_op from dagstermill library to make parameters avalible in Dagster Launchpad to edit run configuration. 
+A cell tagged 'op_parameters' responsible for integration standalone notebook with Dagster. In a load stage dictionary of parameters from this cell is trasformed to dagstermill format and sets to fuction define_dagstermill_op from dagstermill library to make parameters avalible in Dagster Launchpad to edit run configuration. 
 
 ![nb_1](https://user-images.githubusercontent.com/1010096/221655435-3b01fb49-7ff9-4e53-82b8-ad0922fc2136.png)
 
