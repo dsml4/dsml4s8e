@@ -30,7 +30,7 @@ The function
 ```python 
 get_context
 ```
-set default values from config_schema in cell 'op parameters' to context
+set default values from config_schema in cell 'op_parameters' to context
 ```python
 # pass context.op_config
 context = dagstermill.get_context(op_config=
