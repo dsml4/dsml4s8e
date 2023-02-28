@@ -67,7 +67,7 @@ If the notebook is run by Dagster then it replace 'parameter' cell with 'injecte
 
 ![injected](https://user-images.githubusercontent.com/1010096/221841608-8f0b51a9-c3ff-4152-a8f5-33feac4eb9aa.png)
 
-### A pipeline data catalog
+### The pipeline data catalog
 
 LocalStorage Catalog is a class responsible for a structure of a data catalog it is fully customizable.
 ![data_catalog](https://user-images.githubusercontent.com/1010096/221920443-0ce3e328-2856-4369-8c2a-7e8d688ad16b.png)
