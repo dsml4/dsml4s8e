@@ -62,7 +62,7 @@ context = dagstermill.get_context(op_config=
                                   dag_params.get_op_config(op_parameters)
                                  )
 ```
-If the notebook is run by Dagster then it replace 'parameter' cell with 'injected-parameters' cell.
+If a notebook is run by Dagster then it replace 'parameter' cell with 'injected-parameters' cell.
 
 
 ![injected](https://user-images.githubusercontent.com/1010096/221841608-8f0b51a9-c3ff-4152-a8f5-33feac4eb9aa.png)
