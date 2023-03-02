@@ -69,7 +69,8 @@ If a notebook is run by Dagster then it replace 'parameter' cell with 'injected-
 
 ### The pipeline data catalog
 
-LocalStorage Catalog is a class responsible for a structure of a data catalog it is fully customizable.
+LocalStorage Catalog is a class responsible for a structure of a data catalog, but a structure is fully customizable using StorageCatalogABC.
+
 ![data_catalog](https://user-images.githubusercontent.com/1010096/221920443-0ce3e328-2856-4369-8c2a-7e8d688ad16b.png)
 
 '/home/jovyan/data/dev/pipeline_example/data_load/9e4d0418-b711-4b84-83e3-28bcd521c260/nb_1/data1'
