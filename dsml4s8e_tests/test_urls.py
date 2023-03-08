@@ -1,4 +1,4 @@
-from .. import urls
+from dsml4s8e import urls
 
 
 def test_reduce_leafs():

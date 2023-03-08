@@ -1,4 +1,4 @@
-from .. import storage_catalog
+from dsml4s8e import storage_catalog
 
 
 def test_get_in_urls():

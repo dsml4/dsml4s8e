@@ -1,4 +1,4 @@
-from .. import extract_dag_params_from_nb
+from dsml4s8e import extract_dag_params_from_nb
 from pathlib import Path
 from dagster import Field
 from dagster import Out, In

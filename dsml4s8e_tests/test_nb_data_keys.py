@@ -1,4 +1,4 @@
-from .. import nb_data_keys
+from dsml4s8e import nb_data_keys
 
 
 def test_nb_data_keys():
