@@ -1,7 +1,7 @@
-dsml4s8e/__pycache__/
-dsml4s8e_tests/__pycache__
-dsml4s8e_tests/.pytest_cache
+__pycache__/
+.pytest_cache
 *.ipynb_checkpoints
+daghome/
 
 
 

@@ -11,7 +11,8 @@ setup(
     license='Apache 2.0',
     packages=['dsml4s8e'],
     install_requires=['dagster',
-                      'dagstermill'
+                      'dagstermill',
+                      'ipynbname'
                       ],
 
     classifiers=[
