@@ -1,4 +1,4 @@
-from .. dag_params import get_op_config
+from dsml4s8e.dag_params import get_op_config
 from dagster import Field
 
 

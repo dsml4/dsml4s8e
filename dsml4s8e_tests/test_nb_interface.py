@@ -1,6 +1,6 @@
+from dsml4s8e import nb_interface
+from dsml4s8e import local_storage
 from collections import namedtuple
-from .. import nb_interface
-from .. import local_storage
 
 
 def _get_contex_mock(run_id: str,
