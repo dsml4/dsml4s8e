@@ -1,4 +1,23 @@
-__pycache__/
-test/__pycache__
-test/.pytest_cache
-test/data/.ipynb_checkpoints
+dsml4s8e/__pycache__/
+dsml4s8e/tests/__pycache__
+dsml4s8e/tests/.pytest_cache
+*.ipynb_checkpoints
+
+
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+*.egg-info/
+
+.tox/
+.pytest_cache/

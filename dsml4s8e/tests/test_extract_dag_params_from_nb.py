@@ -6,7 +6,7 @@ from dagster import Out, In
 
 def test_extract_op_params_from_nb():
     test_dir = Path(__file__).parent
-    nb_path = f'{test_dir}/data/nb_with_params.ipynb'
+    nb_path = f'{test_dir}/notebooks/nb_with_params.ipynb'
     op_params = extract_dag_params_from_nb.get_dagstermill_op_params(nb_path)
 
     etalon_op_params = {
@@ -19,7 +19,7 @@ def test_extract_op_params_from_nb():
                 default_value=10
                 )
         },
-        'description': """runs data/nb_with_params.ipynb""",
+        'description': """runs notebooks/nb_with_params.ipynb""",
         'ins': {'pip1.comp1.nb1.data1': 'alias_data_key'},
         'outs': ['data1']
     }
