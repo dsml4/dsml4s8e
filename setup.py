@@ -1,8 +1,9 @@
 from setuptools import setup
+import dsml4s8e
 
 setup(
     name='dsml4s8e',
-    version='0.1.0',
+    version=dsml4s8e.__version__,
     description='build daster pipelines from standalone notebooks',
     url='https://github.com/dsml4/dsml4s8e',
     author='Aleksandr Motuzov',
