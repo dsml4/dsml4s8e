@@ -2,8 +2,7 @@
 # dsml4s8e
 **D**ata **S**cience / **ML** flow(**4**) **s**tandalon(**8**)**e**
 
-
-dsml4s8e is a python library that aims to:
+**dsml4s8e** is a python library that aims to:
  1. Simplify building of Dagster pipelines from **standalon** notebooks
  2. Standardize a structure of ML/DS pipeline projects to easy sharing
  3. Manage experiments data and artefacts in a continual improvement process.
@@ -13,6 +12,13 @@ It makes possible following workflow:
  2. Develop **standalon** Jupyter notebooks with **clear interface**
  3. Loade the notebooks into dagit (build a **pipeline**) and deloy in vary environments(experimental/test/prod) and on vary infrastructure
  4. Configure and run the certaine version of pipeline many times in vary environments and on vary infrastructure 
+
+## Install local dev container
+```bash
+cd images\dev
+docker build -t dsml4s8e .
+docker create --name dsml4s8e -p 3000:3000 -p 8899:8888 -v C:\Users\$env:UserName\education\work:/home/jovyan/work -v C:\Users\$env:UserName\education\data:/home/jovyan/data dsml4s8e start.sh jupyter lab --LabApp.token=''
+```
 
 ## A standalone notebook specification
 
