@@ -19,6 +19,20 @@ cd images\dev
 docker build -t dsml4s8e .
 docker create --name dsml4s8e -p 3000:3000 -p 8899:8888 -v C:\Users\$env:UserName\education\work:/home/jovyan/work -v C:\Users\$env:UserName\education\data:/home/jovyan/data dsml4s8e start.sh jupyter lab --LabApp.token=''
 ```
+Open JupyterLab: http://localhost:8899/lab
+
+In Terminal run gagster app(pipeline):
+
+```bash
+(base) jovyan@5f89f66ad4ae:~/work$ git clone https://github.com/dsml4/dsml4s8e.git
+(base) jovyan@5f89f66ad4ae:~/work$ cd dsml4s8e/examples/simple_pipeline/dag
+(base) jovyan@5f89f66ad4ae:~/work/dsml4s8e/examples/simple_pipeline/dag$ bash run.sh 
+```
+<img width="948" alt="setup" src="https://user-images.githubusercontent.com/1010096/224495287-7840a392-6214-41d5-82da-114aa146233e.png">
+
+Dagster: http://localhost:3000/
+
+<img width="1839" alt="dagstermill_pipeline" src="https://user-images.githubusercontent.com/1010096/224496071-5f53979a-5e65-43eb-bbfe-408d0899e3ee.png">
 
 ## A standalone notebook specification
 
