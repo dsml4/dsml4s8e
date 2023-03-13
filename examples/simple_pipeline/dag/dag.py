@@ -1,3 +1,4 @@
+from dsml4s8e.extract_dag_params_from_nb import get_dagstermill_op_params
 from dagstermill import define_dagstermill_op, local_output_notebook_io_manager
 from dagster import (
     asset,
@@ -12,8 +13,6 @@ from dagster import (
     In
 )
 from pathlib import Path
-
-from dsml4s8e.extract_dag_params_from_nb import get_dagstermill_op_params
 
 
 def full_path(path: str) -> str:
@@ -43,6 +42,7 @@ def final_op(context, data2: str):
 
 
 @job(
+    name='simple_pipeline',
     tags={"cdlc_stage": "dev"},
     resource_defs={
         "output_notebook_io_manager": local_output_notebook_io_manager,
