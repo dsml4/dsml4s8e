@@ -2,8 +2,9 @@ from dagster import Out, In
 import nbformat
 from dsml4s8e.nb_data_keys import (
     NotebookDataKeys,
-    data_key2dag_name
+    data_key2url_name
     )
+from pathlib import Path
 
 
 def uniq_name(entity_id: str):
@@ -39,7 +40,7 @@ def nb_outs2dagster_outs(outs, nb_path):
         nb_path=nb_path
     )
     return {
-        data_key2dag_name(k): Out(str)
+        data_key2url_name(k): Out(str)
         for k in nb_data_keys.outs.keys
     }
 
@@ -64,5 +65,8 @@ def get_dagstermill_op_params(nb_path: str):
         )
     params['notebook_path'] = nb_path
     local_path = '/'.join(nb_path.split('/')[-2:])
-    params['description'] = f"runs {local_path}"
+    params['description'] = f"path: {local_path}"
+    nb_name = Path(nb_path).stem
+    params['name'] = nb_name
+    params['output_notebook_name'] = f"out_{nb_name}"
     return params
