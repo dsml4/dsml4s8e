@@ -21,5 +21,6 @@ RUN pip install -U dagster dagstermill dagit && \
     pip install -U pytest 
 
 USER ${NB_UID}
+ENV DAGSTER_HOME=/home/jovyan/work/dagster_home
 
 WORKDIR "${HOME}"
