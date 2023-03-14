@@ -17,7 +17,7 @@ RUN  mamba install --name base pycodestyle gitpython twine -y && \
      fix-permissions "/home/${NB_USER}"
 
 RUN pip install -U dagster dagstermill dagit && \
-    pip install -U dsml4s8e && \
+    pip install -U ipynbname && \
     pip install -U pytest 
 
 USER ${NB_UID}
