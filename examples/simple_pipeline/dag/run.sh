@@ -1,3 +1,3 @@
-daghome=$(pwd)/daghome
-mkdir -p $daghome
-DAGSTER_HOME=$daghome dagit -h 0.0.0.0 -f dag.py
+mkdir -p $DAGSTER_HOME
+echo $DAGSTER_HOME
+dagit -h 0.0.0.0 -f $(pwd)/dag.py

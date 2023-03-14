@@ -15,22 +15,24 @@ It makes possible following workflow:
 
 ## Install local dev container
 ```bash
-cd images\dev
+#Create a work directory to clone a git repository. The work directory will be mounted to the container.   
+mkdir work
+#Step into the work directory
+cd work
+#Clone repository 
+git clone https://github.com/dsml4/dsml4s8e.git
+# Step into a derictory with a Dockerfile
+cd dsml4s8e/images/dev
+# Build a image.  
 docker build -t dsml4s8e .
-docker create --name dsml4s8e -p 3000:3000 -p 8899:8888 -v C:\Users\$env:UserName\education\work:/home/jovyan/work -v C:\Users\$env:UserName\education\data:/home/jovyan/data dsml4s8e start.sh jupyter lab --LabApp.token=''
+# Go back into the work directory to a correct using pwd command inside the next docker run instruction.
+cd ../../../
+# Create and run a container staying in the work directory.
+docker run --rm --name my_dag -p 3000:3000 -p 8888:8888 -v $(pwd):/home/jovyan/work -e DAGSTER_HOME=/home/jovyan/work/daghome dsml4s8e bash work/dsml4s8e/setup_pipeline.sh
 ```
-Open JupyterLab: http://localhost:8899/lab
+Open JupyterLab in a browser: http://localhost:8888/lab
 
-In Terminal run gagster app(pipeline):
-
-```bash
-(base) jovyan@5f89f66ad4ae:~/work$ git clone https://github.com/dsml4/dsml4s8e.git
-(base) jovyan@5f89f66ad4ae:~/work$ cd dsml4s8e/examples/simple_pipeline/dag
-(base) jovyan@5f89f66ad4ae:~/work/dsml4s8e/examples/simple_pipeline/dag$ bash run.sh 
-```
-<img width="948" alt="setup" src="https://user-images.githubusercontent.com/1010096/224495287-7840a392-6214-41d5-82da-114aa146233e.png">
-
-Dagster: http://localhost:3000/
+Open Dagster in a browser: http://localhost:3000/
 
 <img width="1839" alt="dagstermill_pipeline" src="https://user-images.githubusercontent.com/1010096/224496071-5f53979a-5e65-43eb-bbfe-408d0899e3ee.png">
 
@@ -70,20 +72,6 @@ context = dagstermill.get_context(op_config=
 ![nb_1](https://user-images.githubusercontent.com/1010096/221655435-3b01fb49-7ff9-4e53-82b8-ad0922fc2136.png)
 
 
-A cell tagged **'parameters'** response for setup a notebook run configuration.
-
-Variables declared in this cell are used in class NBInterface.
-The function
-```python 
-get_context
-```
-set default values from config_schema in cell 'op_parameters' to context
-```python
-# pass context.op_config
-context = dagstermill.get_context(op_config=
-                                  dag_params.get_op_config(op_parameters)
-                                 )
-```
 If a notebook is run by Dagster then it replace 'parameter' cell with 'injected-parameters' cell.
 
 

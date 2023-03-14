@@ -9,7 +9,7 @@ setup(
     author='Aleksandr Motuzov',
     author_email='motuzov@gmail.com',
     license='Apache 2.0',
-    packages=['dsml4s8e'],
+    packages=['dsml4s8e', 'dsml4s8e.dsmlcatalog', 'dsml4s8e.storage_rw'],
     install_requires=['dagster',
                       'dagstermill',
                       'ipynbname'

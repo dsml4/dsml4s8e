@@ -4,6 +4,7 @@ from dataclasses import make_dataclass
 from os.path import exists
 import json
 
+
 _storage_cfg_json = '/home/jovyan/work/storage.json'
 if exists(_storage_cfg_json):
     with open(_storage_cfg_json) as f:
@@ -84,34 +85,3 @@ def make_data_obj_urls_from_dict(path_leaf_dict: dict[str: str]) -> object:
         path_leaf_obj = _pack_leafs_list_to_obj(
             _reduce_leafs(path_leaf_obj))
     return path_leaf_obj
-
-
-def data_key2url(
-        key: str,
-        cdlc_stage: str,
-        run_id: str,
-        prefix: str
-        ) -> str:
-    """
-    format of data_key: <pipeline>.<component>.<notebook>.<name_data_opj>
-    cdlc_stage is a stage of component development life cycle: dev, test, ops
-    url: <prefix>/<pipeline>/<component>/<notebook>/<name_data_opj>
-    """
-    p, c, nb, e = key.split('.')
-    return f'{prefix}/{cdlc_stage}/{p}/{c}/{run_id}/{nb}/{e}'
-
-
-def url2data_key(url: str) -> str:
-    p = url.split('/')
-    return '.'.join((p[-5], p[-4], p[-2], p[-1]))
-
-
-def get_urls_from_local(local_vars: dict,
-                        res_id: list[str]) -> dict:
-    short_names_set = set([name.split('.')[-1] for name in res_id])
-    res = {url2data_key(local_vars[var_name]): url
-           for var_name, url in local_vars.items()
-           if var_name in short_names_set}
-    if set(res.keys()) == set(res_id):
-        return res
-    return None

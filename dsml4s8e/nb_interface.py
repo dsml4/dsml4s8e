@@ -1,15 +1,9 @@
 from dataclasses import dataclass
 
 
-from .nb_data_keys import (
-    NotebookDataKeys,
-    data_key2dag_name
-    )
+from .nb_data_keys import NotebookDataKeys, data_key2url_name
 from .storage_catalog import StorageCatalogABC
 from . import urls
-from datetime import datetime
-import glob
-# component serialize: notebook run parameters
 
 
 @dataclass(frozen=True)
@@ -67,9 +61,9 @@ class NBInterface:
     def send_outs_data_urls_to_next_stages(self, yield_result):
         print('outs:')
         for data_obj_key, url in self._outs_dict.items():
-            dagster_name = data_key2dag_name(data_obj_key)
-            print(f'{dagster_name} = "{url}"')
+            url_name = data_key2url_name(data_obj_key)
+            print(f'{url_name} = "{url}"')
             yield_result(
                 url,
-                output_name=dagster_name
+                output_name=url_name
              )

@@ -1,5 +1,5 @@
 from dsml4s8e import nb_interface
-from dsml4s8e import local_storage
+from dsml4s8e.dsmlcatalog import local_storage
 from collections import namedtuple
 
 

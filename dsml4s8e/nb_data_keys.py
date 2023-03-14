@@ -24,12 +24,12 @@ def _get_nb_id(
         notebook)
 
 
-def _get_artefact_ids(nb_id: str, artefact_names: list[str]):
+def _get_data_keys(nb_id: str, artefact_names: list[str]):
     return [f'{nb_id}.{a}' for a in artefact_names]
 
 
-def data_key2dag_name(data_key: str) -> str:
-    return '_'.join(data_key.split('.')[-2:])
+def data_key2url_name(data_key: str) -> str:
+    return '_'.join(['url'] + data_key.split('.')[-2:])
 
 
 class NotebookDataKeys:
@@ -57,7 +57,7 @@ class NotebookDataKeys:
         )
 
         self.ins = DataKeys(ins_data_key_dag_name.keys())
-        self.outs = DataKeys(_get_artefact_ids(self.id, outs))
+        self.outs = DataKeys(_get_data_keys(self.id, outs))
 
     def __str__(self):
         interface_info = {
