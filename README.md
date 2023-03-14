@@ -22,11 +22,11 @@ cd work
 #Clone repository 
 git clone https://github.com/dsml4/dsml4s8e.git
 # Step into a derictory with a Dockerfile
-cd images\dev
+cd dsml4s8e/images/dev
 # Build a image.  
 docker build -t dsml4s8e .
 # Go back into the work directory to a correct using pwd command inside the next docker run instruction.
-cd ../../
+cd ../../../
 # Create and run a container staying in the work directory.
 docker run --rm --name my_dag -p 3000:3000 -p 8888:8888 -v $(pwd):/home/jovyan/work -e DAGSTER_HOME=/home/jovyan/work/daghome dsml4s8e bash work/dsml4s8e/setup_pipeline.sh
 ```
