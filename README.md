@@ -13,6 +13,10 @@ It makes possible following workflow:
  3. Loade the notebooks into dagit (build a **pipeline**) and deloy in vary environments(experimental/test/prod) and on vary infrastructure
  4. Configure and run the certaine version of pipeline many times in vary environments and on vary infrastructure 
 
+You can play with the demo pipeline skelet project:
+
+https://github.com/dsml4/pipeline_skelet
+
 ## Install local dev container
 ```bash
 #Create a work directory to clone a git repository. The work directory will be mounted to the container.   
@@ -30,6 +34,7 @@ cd ../../../
 # Create and run a container staying in the work directory.
 docker run --rm --name my_dag -p 3000:3000 -p 8888:8888 -v $(pwd):/home/jovyan/work -e DAGSTER_HOME=/home/jovyan/work/daghome dsml4s8e bash work/dsml4s8e/setup_pipeline.sh
 ```
+
 Open JupyterLab in a browser: http://localhost:8888/lab
 
 Open Dagster in a browser: http://localhost:3000/
