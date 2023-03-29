@@ -3,6 +3,8 @@ from typing import Dict
 from functools import cached_property
 from dagster import Field
 
+import dagstermill
+
 
 def op_name_from_nb_path(nb_path, level_from_root=2):
     p = Path(nb_path)
@@ -82,6 +84,9 @@ class NbOpParams:
         if len(empty_vals) > 0:
             raise MissedInsParameters(empty_vals, ins)
         return urls_dict
+
+    def get_context(self):
+        return dagstermill.get_context(op_config=self.config)
 
     @property
     def id(self):

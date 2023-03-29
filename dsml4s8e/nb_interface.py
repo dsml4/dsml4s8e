@@ -8,6 +8,8 @@ from dsml4s8e.dag_params import NbOpParams
 
 from typing import Dict
 
+import dagstermill
+
 
 @dataclass(frozen=True)
 class NbDataUrl:
@@ -47,12 +49,12 @@ class NBInterface:
     def validate(self):
         return True
 
-    def send_outs_data_urls_to_next_step(self, yield_result):
+    def send_outs_data_urls_to_next_step(self):
         print('outs:')
         for data_obj_key, url in self._outs_dict.items():
             url_name = data_key2url_name(data_obj_key)
             print(f'{url_name} = "{url}"')
-            yield_result(
+            dagstermill.yield_result(
                 url,
                 output_name=url_name
              )
