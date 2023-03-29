@@ -34,7 +34,7 @@ class DagsterStorageCatalog(sc.StorageCatalogABC):
     def is_valid(self) -> bool:
         return True
 
-    def get_out_urls(self, data_kyes: DataKeys) -> Dict[str, str]:
+    def get_outs_data_urls(self, data_kyes: DataKeys) -> Dict[str, str]:
         return dict(
             [(
                 k,
@@ -44,13 +44,3 @@ class DagsterStorageCatalog(sc.StorageCatalogABC):
                     )
             ) for k in data_kyes.keys]
         )
-
-    def get_in_urls(self,
-                    local_vars: Dict[str, str],
-                    op_parameters_ins: Dict[str, str]
-                    ) -> Dict[str, str]:
-        res = super().get_in_urls(local_vars, op_parameters_ins)
-        empty_vals = [k for k, v in res.items() if not v]
-        if len(empty_vals) > 0:
-            raise sc.MissedInsParameters(empty_vals, op_parameters_ins)
-        return res
