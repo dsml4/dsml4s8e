@@ -1,35 +1,35 @@
+from .context_mock import get_context_mock
+
 from dsml4s8e import nb_interface
+from dsml4s8e.dag_params import NbOpParams
 from dsml4s8e.dsmlcatalog import local_storage
-from collections import namedtuple
-
-
-def _get_contex_mock(run_id: str,
-                     tags: str):
-
-    return namedtuple(
-        'DagsterContextMock',
-        ['run', 'op_def'])(
-            namedtuple('Run', ['run_id'])(run_id),
-            namedtuple('OpDef', ['tags'])(tags)
-    )
+from dagster import Field
 
 
 def test_nb_interface():
     nb_path = '/home/jovyan/work/dev/pipeline_example/data_load/dagstermill.ipynb'
-    dagster_context = _get_contex_mock(
+    context = get_context_mock(
         run_id='0000',
         tags={'notebook_path': nb_path}
     )
+    nb_op_params = NbOpParams(
+                config_schema={
+                    "a": Field(
+                        int,
+                        description='this is the paramentr description',
+                        default_value=10
+                        )
+                },
+                ins={'pipeline_example.data': 'var_name'},
+                outs=['data1']
+            )
+    var_name = 'val'
     nb_interface_ = nb_interface.NBInterface(
-        dagster_context=dagster_context,
-        dag_op_params={
-            'outs': ['data1'],
-            'ins': {'pipeline_example.data': 'var_name'}
-        },
-        local_vars={'var_name': 'val'},
+        locals_=locals(),
+        nb_op_params=nb_op_params,
         storage_catalog=local_storage.LoacalStorageCatalog(
             '/home/jovyan/data',
-            dagster_context=dagster_context
+            dagster_context=context
             )
     )
     etalon_url = '/home/jovyan/data/dev/pipeline_example/data_load/0000/dagstermill/data1'

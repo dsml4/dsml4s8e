@@ -1,5 +1,104 @@
-def get_op_config(dag_op_params):
-    return {
-        k: v.default_value for k, v in
-        dag_op_params['config_schema'].items()
-    }
+from pathlib import Path
+from typing import Dict
+from functools import cached_property
+from dagster import Field
+
+
+def op_name_from_nb_path(nb_path, src_level=2):
+    p = Path(nb_path)
+    src_level += 1
+    return '.'.join(list(p.parts[-src_level:-1]) + [p.stem]), p.stem
+
+
+class MissedInsParameters(Exception):
+    def __init__(self, missed_vars, op_parameters_ins):
+        keys_str = '/n'.join(missed_vars)
+        vars = '/n'.join([op_parameters_ins[k] for k in missed_vars])
+        self.message = f"""
+        variables:
+        {vars}
+        with keys:
+        {keys_str}
+        from dict in cell 'op_parameters'
+        {op_parameters_ins}
+        must be declared in cell 'parameters'
+        """
+        super().__init__(self.message)
+
+
+class NbOpParams:
+    current_op_id = 'from_jupyter'
+    ops: Dict[str, dict] = {}
+
+    def __init__(self,
+                 config_schema: Dict[str, Field] = None,
+                 ins: Dict[str, dict] = None,
+                 outs: Dict[str, dict] = None,
+                 path: str = None,
+                 src_level=2
+                 ) -> None:
+        self._op_params = {}
+        self._src_level = src_level
+        if self.current_op_id == 'from_jupyter':
+            import ipynbname
+            try:
+                path = ipynbname.path()
+                self.current_op_id, self.nb_name = op_name_from_nb_path(
+                    nb_path=path,
+                    src_level=self._src_level
+                    )
+            except Exception:
+                ...
+        self._id = self.current_op_id
+        self.ops[self._id] = self._op_params
+        if config_schema:
+            self._op_params['config_schema'] = config_schema
+        if ins:
+            self._op_params['ins'] = ins
+        if outs:
+            self._op_params['outs'] = outs
+
+    def set_locals(self, locals_: Dict[str, dict]):
+        self.dagster_context = locals_['context']
+        if 'notebook_path' in self.dagster_context.op_def.tags:
+            self._id, self.nb_name = op_name_from_nb_path(
+                        nb_path=self.dagster_context.op_def.tags['notebook_path'],
+                        src_level=self._src_level
+                        )
+
+    def get_ins_data_urls(self, locals_: Dict[str, dict]) -> Dict[str, str]:
+        """
+        op_parameters_ins = op_parameters['ins']
+        op_parameters is a dict from notebook cell with tag op_parameters
+        _locals = locals() # Local symbol Table
+        'ins': {'key': 'nb_data1'} -> {key: _locals['nb_data1']}
+        """
+        ins: Dict[str, dict] = self._op_params['ins']
+        urls_dict = {
+            k: locals_.get(k_alias, '')
+            for k, k_alias in ins.items()
+        }
+        empty_vals = [k for k, url in urls_dict.items() if not url]
+        if len(empty_vals) > 0:
+            raise MissedInsParameters(empty_vals, ins)
+        return urls_dict
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def op_params(self):
+        return self._op_params
+
+    @cached_property
+    def config(self):
+        config_schema: Dict[str, Field] = self._op_params['config_schema']
+        return {
+            k: v.default_value for k, v in
+            config_schema.items()
+        }
+
+    @classmethod
+    def params(cls):
+        return cls.ops[cls.current_op_id].copy()
