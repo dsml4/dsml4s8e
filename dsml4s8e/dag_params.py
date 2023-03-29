@@ -4,10 +4,10 @@ from functools import cached_property
 from dagster import Field
 
 
-def op_name_from_nb_path(nb_path, src_level=2):
+def op_name_from_nb_path(nb_path, level_from_root=2):
     p = Path(nb_path)
-    src_level += 1
-    return '.'.join(list(p.parts[-src_level:-1]) + [p.stem]), p.stem
+    level_from_root += 1
+    return '.'.join(list(p.parts[-level_from_root:-1]) + [p.stem]), p.stem
 
 
 class MissedInsParameters(Exception):
@@ -35,17 +35,17 @@ class NbOpParams:
                  ins: Dict[str, dict] = None,
                  outs: Dict[str, dict] = None,
                  path: str = None,
-                 src_level=2
+                 level_from_root=2
                  ) -> None:
         self._op_params = {}
-        self._src_level = src_level
+        self._level_from_root = level_from_root
         if self.current_op_id == 'from_jupyter':
             import ipynbname
             try:
                 path = ipynbname.path()
                 self.current_op_id, self.nb_name = op_name_from_nb_path(
                     nb_path=path,
-                    src_level=self._src_level
+                    level_from_root=self._level_from_root
                     )
             except Exception:
                 ...
@@ -63,7 +63,7 @@ class NbOpParams:
         if 'notebook_path' in self.dagster_context.op_def.tags:
             self._id, self.nb_name = op_name_from_nb_path(
                         nb_path=self.dagster_context.op_def.tags['notebook_path'],
-                        src_level=self._src_level
+                        level_from_root=self._level_from_root
                         )
 
     def get_ins_data_urls(self, locals_: Dict[str, dict]) -> Dict[str, str]:
