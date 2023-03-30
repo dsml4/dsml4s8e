@@ -121,7 +121,7 @@ class NbOp:
             outs=dotted_urls_names.do_dotted_urls_names(self._outs_dict)
             )
 
-    def send_outs_to_next_step(self):
+    def pass_outs_to_next_step(self):
         print('outs:')
         for data_obj_key, url in self._outs_dict.items():
             url_name = data_key2url_name(data_obj_key)
