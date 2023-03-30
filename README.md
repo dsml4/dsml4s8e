@@ -2,34 +2,34 @@
 # dsml4s8e
 **D**ata **S**cience / **ML** flow(**4**) **s**tandalon(**8**)**e**
 
-**dsml4s8e** is a python library that aims to:
- 1. Simplify building of Dagster pipelines from **standalon** notebooks
+**dsml4s8e** is the dagster extension that aims to:
+ 1. Simplify building of dagster pipelines from **standalon** notebooks
  2. Standardize a structure of ML/DS pipeline projects to easy sharing
- 3. Manage experiments data and artefacts in a continual improvement process.
+ 3. Manage experiments data and artefacts in a continual improvement process
 
-It makes possible following workflow:
+It makes possible the following workflow:
  1. Define a project structure for your pipeline and a structure of the pipeline data catalog
  2. Develop **standalon** Jupyter notebooks with **clear interface**
- 3. Loade the notebooks into dagit (build a **pipeline**) and deloy in vary environments(experimental/test/prod) and on vary infrastructure
+ 3. Build a **pipeline** and deloy in vary environments(experimental/test/prod) and on vary infrastructure
  4. Configure and run the certaine version of pipeline many times in vary environments and on vary infrastructure 
 
 You can play with the demo pipeline skelet project:
 
 https://github.com/dsml4/pipeline_skelet
 
-## Install local dev container
+## Installation of local dev container
 ```bash
-#Create a work directory to clone a git repository. The work directory will be mounted to the container.   
+# Create a work directory to clone a git repository. The work directory will be mounted to the container
 mkdir work
 #Step into the work directory
 cd work
-#Clone repository 
+# Clone repository
 git clone https://github.com/dsml4/dsml4s8e.git
 # Step into a derictory with a Dockerfile
 cd dsml4s8e/images/dev
-# Build a image.  
+# Build a image
 docker build -t dsml4s8e .
-# Go back into the work directory to a correct using pwd command inside the next docker run instruction.
+# Go back into the work directory to a correct using pwd command inside the next docker run instruction
 cd ../../../
 # Create and run a container staying in the work directory.
 docker run --rm --name my_dag -p 3000:3000 -p 8888:8888 -v $(pwd):/home/jovyan/work -e DAGSTER_HOME=/home/jovyan/work/daghome dsml4s8e bash work/dsml4s8e/setup_pipeline.sh
@@ -102,7 +102,7 @@ LocalStorage Catalog is a class responsible for a structure of a data catalog, b
  * nb_1/ - notebook name
  * data1 - data object
 
-### A cell responsible for outs passing
+### A cell responsible for outs passing to the next step
 
 ```python
 op.pass_outs_to_next_step()
