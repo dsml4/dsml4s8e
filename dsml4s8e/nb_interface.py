@@ -12,7 +12,7 @@ import dagstermill
 
 
 @dataclass(frozen=True)
-class NbDataUrl:
+class NbDataUrls:
     ins: object
     outs: object
 
@@ -40,8 +40,8 @@ class NBInterface:
 
     def get_data_urls(
             self
-            ) -> NbDataUrl:
-        return NbDataUrl(
+            ) -> NbDataUrls:
+        return NbDataUrls(
             ins=dotted_urls_names.do_dotted_urls_names(self._ins_dict),
             outs=dotted_urls_names.do_dotted_urls_names(self._outs_dict)
             )
