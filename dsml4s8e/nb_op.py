@@ -1,6 +1,6 @@
 from dsml4s8e import dotted_urls_names
 from dsml4s8e.storage_catalog import StorageCatalogABC
-from dsml4s8e.nb_data_keys import NotebookDataKeys, data_key2url_name
+from dsml4s8e.nb_data_keys import NotebookDataKeys
 
 import dagstermill
 
@@ -102,11 +102,11 @@ class NbOp:
             storage_catalog: StorageCatalogABC
             ) -> NbDataUrls:
         self.set_locals(locals_)
-        op_params = self.op_params
+        op_params = self._op_params
         self.nb_data_keys = NotebookDataKeys(
             ins_data_key_dag_name=op_params.get('ins', {}),
             outs=op_params.get('outs', []),
-            op_id=self.id
+            op_id=self._id
         )
         _ins_dict = {}
         self._outs_dict = {}
@@ -124,7 +124,7 @@ class NbOp:
     def pass_outs_to_next_step(self):
         print('outs:')
         for data_obj_key, url in self._outs_dict.items():
-            url_name = data_key2url_name(data_obj_key)
+            url_name = self.data_key2url_name(data_obj_key)
             print(f'{url_name} = "{url}"')
             dagstermill.yield_result(
                 url,
@@ -134,14 +134,6 @@ class NbOp:
     def get_context(self):
         return dagstermill.get_context(op_config=self.config)
 
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def op_params(self):
-        return self._op_params
-
     @cached_property
     def config(self):
         config_schema: Dict[str, Field] = self._op_params['config_schema']
@@ -149,6 +141,10 @@ class NbOp:
             k: v.default_value for k, v in
             config_schema.items()
         }
+
+    @classmethod
+    def data_key2url_name(cls, data_key: str):
+        return '_'.join(['url'] + data_key.split('.')[-2:])
 
     @classmethod
     def params(cls):

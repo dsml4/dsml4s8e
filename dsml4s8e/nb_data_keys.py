@@ -13,10 +13,6 @@ class DataKeys:
     keys: tuple[str]
 
 
-def data_key2url_name(data_key: str) -> str:
-    return '_'.join(['url'] + data_key.split('.')[-2:])
-
-
 class NotebookDataKeys:
     def __init__(
             self,

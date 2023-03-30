@@ -7,7 +7,7 @@ from dagster import Out, In
 def test_op_params_from_nb():
     test_dir = Path(__file__).parent
     nb_path = f'{test_dir}/notebooks/nb_with_params.ipynb'
-    op_params = op_params_from_nb.get_dagstermill_op_params(nb_path)
+    op_params = op_params_from_nb.dagstermill_op_params_from_nb(nb_path)
 
     etalon_op_params = {
         'config_schema': {

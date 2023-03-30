@@ -1,7 +1,4 @@
-from dsml4s8e.nb_data_keys import (
-    NotebookDataKeys,
-    data_key2url_name
-    )
+from dsml4s8e.nb_data_keys import NotebookDataKeys
 import dsml4s8e.nb_op as op
 
 from dagster import Out, In
@@ -33,12 +30,12 @@ def nb_outs2dagster_outs(outs, nb_id):
         op_id=nb_id
     )
     return {
-        data_key2url_name(k): Out(str)
+        op.NbOp.data_key2url_name(k): Out(str)
         for k in nb_data_keys.outs.keys
     }
 
 
-def get_dagstermill_op_params(nb_path: str):
+def dagstermill_op_params_from_nb(nb_path: str):
     nb = nbformat.read(nb_path, as_version=4)
     op.NbOp.current_op_id, nb_name = op.op_name_from_nb_path(nb_path)
     for cell in nb.cells:
