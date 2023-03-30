@@ -1,5 +1,5 @@
-from .. import storage_catalog as sc
-from ..nb_data_keys import DataKeys
+from dsml4s8e import storage_catalog as sc
+from dsml4s8e.nb_data_keys import DataKeys
 from typing import List, Dict
 
 
@@ -36,7 +36,7 @@ class LoacalStorageCatalog(sc.StorageCatalogABC):
     def is_valid(self) -> bool:
         return True
 
-    def get_out_urls(self, data_kyes: DataKeys) -> Dict[str, str]:
+    def get_outs_data_urls(self, data_kyes: DataKeys) -> Dict[str, str]:
         return dict(
                 [(
                     k,
@@ -47,9 +47,3 @@ class LoacalStorageCatalog(sc.StorageCatalogABC):
                         )
                  ) for k in data_kyes.keys]
             )
-
-    def get_in_urls(self,
-                    local_vars: Dict[str, str],
-                    op_parameters_ins: Dict[str, str]
-                    ) -> Dict[str, str]:
-        return super().get_in_urls(local_vars, op_parameters_ins)

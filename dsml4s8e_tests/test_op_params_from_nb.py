@@ -1,13 +1,13 @@
-from dsml4s8e import extract_dag_params_from_nb
+from dsml4s8e import op_params_from_nb
 from pathlib import Path
 from dagster import Field
 from dagster import Out, In
 
 
-def test_extract_op_params_from_nb():
+def test_op_params_from_nb():
     test_dir = Path(__file__).parent
     nb_path = f'{test_dir}/notebooks/nb_with_params.ipynb'
-    op_params = extract_dag_params_from_nb.get_dagstermill_op_params(nb_path)
+    op_params = op_params_from_nb.dagstermill_op_params_from_nb(nb_path)
 
     etalon_op_params = {
         'config_schema': {
@@ -37,14 +37,13 @@ def test_nb_ins2dagster_ins():
     ins = {
         'pip1.comp1.nb1.data1': 'comp1_nb1_data1'
         }
-    dagster_ins = extract_dag_params_from_nb.nb_ins2dagster_ins(ins)
+    dagster_ins = op_params_from_nb.nb_ins2dagster_ins(ins)
     assert (dagster_ins['comp1_nb1_data1'] == In(str))
 
 
 def test_nb_outs2dagster_outs():
     outs = ['data1']
-    nb_path = '/home/jovyan/work/dev/pipeline_example/data_load/dagstermill.ipynb'
-    dagster_ins = extract_dag_params_from_nb.nb_outs2dagster_outs(outs, nb_path)
-    assert (dagster_ins['url_dagstermill_data1'] ==
+    nb_id = 'pipeline_example.nb'
+    dagster_ins = op_params_from_nb.nb_outs2dagster_outs(outs, nb_id)
+    assert (dagster_ins['url_nb_data1'] ==
             Out(str))
-

@@ -1,23 +1,13 @@
+from dsml4s8e.nb_data_keys import NotebookDataKeys
+import dsml4s8e.nb_op as op
+
 from dagster import Out, In
 import nbformat
-from dsml4s8e.nb_data_keys import (
-    NotebookDataKeys,
-    data_key2url_name
-    )
-from pathlib import Path
 
 
 def uniq_name(entity_id: str):
     name = entity_id.split('.')[-1]
     return name
-
-
-def exec_params_cell(source: str) -> dict:
-    exec_output = {}
-    source = f'{source}\nexec_output["op_params"] = op_parameters\n'
-    exec(source)
-    exec_output['op_params'] = exec_output['op_params'].copy()
-    return exec_output['op_params']
 
 
 def get_cell_tags(cell):
@@ -33,27 +23,28 @@ def nb_ins2dagster_ins(nb_ins):
     }
 
 
-def nb_outs2dagster_outs(outs, nb_path):
+def nb_outs2dagster_outs(outs, nb_id):
     nb_data_keys = NotebookDataKeys(
         ins_data_key_dag_name={},
         outs=outs,
-        nb_path=nb_path
+        op_id=nb_id
     )
     return {
-        data_key2url_name(k): Out(str)
+        op.NbOp.data_key2url_name(k): Out(str)
         for k in nb_data_keys.outs.keys
     }
 
 
-def get_dagstermill_op_params(nb_path: str):
+def dagstermill_op_params_from_nb(nb_path: str):
     nb = nbformat.read(nb_path, as_version=4)
-    params = {}
+    op.NbOp.current_op_id, nb_name = op.op_name_from_nb_path(nb_path)
     for cell in nb.cells:
         tags = []
         if cell.cell_type == 'code':
             tags = get_cell_tags(cell)
         if 'op_parameters' in tags:
-            params = exec_params_cell(cell.source)
+            exec(cell.source)
+            params = op.NbOp.params()
     if 'ins' in params:
         params['ins'] = nb_ins2dagster_ins(
             nb_ins=params['ins'],
@@ -61,12 +52,11 @@ def get_dagstermill_op_params(nb_path: str):
     if 'outs' in params:
         params['outs'] = nb_outs2dagster_outs(
             outs=params['outs'],
-            nb_path=nb_path
+            nb_id=op.NbOp.current_op_id
         )
     params['notebook_path'] = nb_path
-    local_path = '/'.join(nb_path.split('/')[-2:])
-    params['description'] = f"path: {local_path}"
-    nb_name = Path(nb_path).stem
     params['name'] = nb_name
     params['output_notebook_name'] = f"out_{nb_name}"
+    local_path = '/'.join(nb_path.split('/')[-2:])
+    params['description'] = f"path: {local_path}"
     return params

@@ -13,6 +13,10 @@ It makes possible following workflow:
  3. Loade the notebooks into dagit (build a **pipeline**) and deloy in vary environments(experimental/test/prod) and on vary infrastructure
  4. Configure and run the certaine version of pipeline many times in vary environments and on vary infrastructure 
 
+You can play with the demo pipeline skelet project:
+
+https://github.com/dsml4/pipeline_skelet
+
 ## Install local dev container
 ```bash
 #Create a work directory to clone a git repository. The work directory will be mounted to the container.   
@@ -30,58 +34,63 @@ cd ../../../
 # Create and run a container staying in the work directory.
 docker run --rm --name my_dag -p 3000:3000 -p 8888:8888 -v $(pwd):/home/jovyan/work -e DAGSTER_HOME=/home/jovyan/work/daghome dsml4s8e bash work/dsml4s8e/setup_pipeline.sh
 ```
+
 Open JupyterLab in a browser: http://localhost:8888/lab
 
 Open Dagster in a browser: http://localhost:3000/
 
-<img width="1839" alt="dagstermill_pipeline" src="https://user-images.githubusercontent.com/1010096/224496071-5f53979a-5e65-43eb-bbfe-408d0899e3ee.png">
+<img width="1076" alt="dagstermill_pipeline" src="https://user-images.githubusercontent.com/1010096/228894074-704a1484-519b-43f4-ba5c-194b6a81bb8a.png">
 
-## A standalone notebook specification
+
+## The standalone notebook specification
 
 A standalone notebook is a main building block in our pipelines building flow.
 
 To do a notebook capable to be loaded into dagster pipeline we need to add 3 specific cells to the notebook. Next, we will discuss what concerns are addressed each of the cells and what library classes are responsible for each one.
 
-### op_parameters cell
+<img width="1108" alt="mandatory_cells_4" src="https://user-images.githubusercontent.com/1010096/228894923-e9711a62-9bcc-4b78-ba78-ad4224eae0b8.png">
+
+
+### A cell with the op_parameters tag
 
 A cell tagged **'op_parameters'** responses for an integration of a standalone notebook with Dagster. In the load stage dictionary of parameters from this cell is trasformed to dagstermill format and passed to a function define_dagstermill_op from dagstermill library to make parameters avalible in Dagster Launchpad to edit run configuration in the launge stage.
 
-Standalone notebook:
-![op_parameters_cell](https://user-images.githubusercontent.com/1010096/221004539-a13f6dac-056c-4633-94bf-ef995c857da8.png)
+Definition of a dagster operation in a standalone notebook:
+
+<img width="827" alt="op_parameters_cell" src="https://user-images.githubusercontent.com/1010096/228895556-c88742e3-59ed-419e-b0a1-d9811300d624.png">
 
 Launchpad:
-![op_parameters_cell](https://user-images.githubusercontent.com/1010096/221832042-f1129a96-45eb-4678-a541-cab8c9e72c89.png)
 
-### parameters cell
+<img width="846" alt="notebook_op_in_launchpad" src="https://user-images.githubusercontent.com/1010096/228895622-989dc0cb-d7d5-458f-96ff-12b15310ddff.png">
+
+
+### A cell with the parameters tag
 
 A cell tagged **'parameters'** responses for setting a notebook run configuration.
 
-Variables declared in this cell are used in class NBInterface.
+
 The function
 ```python 
 get_context
 ```
 set default values from config_schema in cell 'op_parameters' to context
 ```python
-# pass context.op_config
-context = dagstermill.get_context(op_config=
-                                  dag_params.get_op_config(op_parameters)
-                                 )
+context = op.get_context()
 ```
 
-![nb_1](https://user-images.githubusercontent.com/1010096/221655435-3b01fb49-7ff9-4e53-82b8-ad0922fc2136.png)
+If a notebook is run by dagster then it replace 'parameter' cell with 'injected-parameters' cell.
+
+<img width="1441" alt="Runs_results" src="https://user-images.githubusercontent.com/1010096/228903557-74ae28fe-e8e4-4b09-8734-e5e0491c4053.png">
 
 
-If a notebook is run by Dagster then it replace 'parameter' cell with 'injected-parameters' cell.
+<img width="1518" alt="injected" src="https://user-images.githubusercontent.com/1010096/228903342-c6d0681d-f2d1-44e6-92f3-75fc97da5c82.png">
 
 
-![injected](https://user-images.githubusercontent.com/1010096/221841608-8f0b51a9-c3ff-4152-a8f5-33feac4eb9aa.png)
+### A cell with urls interface 
 
-### The pipeline data catalog
+The pipeline data catalog
 
 LocalStorage Catalog is a class responsible for a structure of a data catalog, but a structure is fully customizable using StorageCatalogABC.
-
-![data_catalog](https://user-images.githubusercontent.com/1010096/221920443-0ce3e328-2856-4369-8c2a-7e8d688ad16b.png)
 
 '/home/jovyan/data/dev/pipeline_example/data_load/9e4d0418-b711-4b84-83e3-28bcd521c260/nb_1/data1'
 
@@ -93,30 +102,68 @@ LocalStorage Catalog is a class responsible for a structure of a data catalog, b
  * nb_1/ - notebook name
  * data1 - data object
 
-
-## The pipleline code
+### A cell responsible for outs passing
 
 ```python
-# in dag.py pipeline code
+op.pass_outs_to_next_step()
+```
 
-from dagstermill import define_dagstermill_op
-from dsml4s8e.extract_dag_params_from_nb import get_dagstermill_op_params
+## A dagster pipleline code
+
+```python
+from dsml4s8e.op_params_from_nb import dagstermill_op_params_from_nb
+from dagstermill import define_dagstermill_op, local_output_notebook_io_manager
+from dagster import (
+    job,
+    op,
+    In
+)
+from pathlib import Path
 
 
-op_1_params = get_dagstermill_op_params("/home/jovyan/work/dev/pipeline_example/data_load/nb_1.ipynb")
+def full_path(path: str) -> str:
+    return str(Path(path).resolve())
+
+
+op_1_params = dagstermill_op_params_from_nb(full_path("../data_load/nb_1.ipynb"))
 op1 = define_dagstermill_op(**op_1_params,
                             save_notebook_on_failure=True)
 
-
-op_2_params = get_dagstermill_op_params("/home/jovyan/work/dev/pipeline_example/data_load/nb_2.ipynb")
+op_2_params = dagstermill_op_params_from_nb(full_path("../data_load/nb_2.ipynb"))
 op2 = define_dagstermill_op(**op_2_params,
                             save_notebook_on_failure=True)
 
+
+@op(
+    description="""end op""",
+    ins={
+        "data2": In(str),
+    },
+    out={},
+)
+def final_op(context, data2: str):
+    context.log.info(data2)
+    # context.log.info(output_notebook_name)
+
+
+@job(
+    name='simple_pipeline',
+    tags={"cdlc_stage": "dev"},
+    resource_defs={
+        "output_notebook_io_manager": local_output_notebook_io_manager,
+    }
+)
+def dagstermill_pipeline():
+    res_urls = op1()
+    res = op2(*res_urls[:-1])
+    final_op(*res[:-1])
+
 ```
 
-Dagster pipeline built from standalone notebooks
+As a result the followed dagster pipeline will be built from standalone notebooks:
 
-![Job_dagstermill_pipeline](https://user-images.githubusercontent.com/1010096/221005076-7ba56646-8a9e-4d75-bbaf-e68ba04d036d.svg)
+![Job_simple_pipeline](https://user-images.githubusercontent.com/1010096/228895849-12a04f1b-a4c0-4bdf-ab88-779d8e84d3b7.svg)
+
 
 
   

@@ -1,7 +1,6 @@
-from dataclasses import dataclass, asdict
-from pathlib import Path
+from dataclasses import dataclass
 import json
-from typing import List
+from typing import List, Dict
 
 
 @dataclass(frozen=True)
@@ -14,30 +13,12 @@ class DataKeys:
     keys: tuple[str]
 
 
-def _get_nb_id(
-        pipeline: str,
-        component: str,
-        notebook: str):
-    return '{}.{}.{}'.format(
-        pipeline,
-        component,
-        notebook)
-
-
-def _get_data_keys(nb_id: str, artefact_names: list[str]):
-    return [f'{nb_id}.{a}' for a in artefact_names]
-
-
-def data_key2url_name(data_key: str) -> str:
-    return '_'.join(['url'] + data_key.split('.')[-2:])
-
-
 class NotebookDataKeys:
     def __init__(
             self,
-            ins_data_key_dag_name: dict,
+            ins_data_key_dag_name: Dict[str, dict],
             outs: List[str],
-            nb_path: str
+            op_id: str
             ):
         '''
         ins is a list of keys of input data objects
@@ -45,19 +26,8 @@ class NotebookDataKeys:
         format of keys of data obj:
         <pipeline>.<component>.<netebook>.<data_obj_name>
         '''
-        self._ins_aliases = ins_data_key_dag_name
-        path = Path(nb_path)
-        parts = path.parts
-        self.notebook_path = str(path)
-
-        self.id = _get_nb_id(
-            pipeline=parts[-3],
-            component=parts[-2],
-            notebook=path.stem
-        )
-
         self.ins = DataKeys(ins_data_key_dag_name.keys())
-        self.outs = DataKeys(_get_data_keys(self.id, outs))
+        self.outs = DataKeys([f'{op_id}.{a}' for a in outs])
 
     def __str__(self):
         interface_info = {
@@ -65,11 +35,3 @@ class NotebookDataKeys:
             "outs": self.outs
         }
         return json.dumps(interface_info, indent=4)
-
-    # TODO: make abc
-    def _is_valid_id(self):
-        pass
-
-    @property
-    def name(self):
-        return self.id.split('.')[-1]
