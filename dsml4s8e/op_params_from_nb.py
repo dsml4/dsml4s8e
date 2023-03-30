@@ -2,7 +2,7 @@ from dsml4s8e.nb_data_keys import (
     NotebookDataKeys,
     data_key2url_name
     )
-import dsml4s8e.dag_params as op_params
+import dsml4s8e.nb_op as op
 
 from dagster import Out, In
 import nbformat
@@ -40,14 +40,14 @@ def nb_outs2dagster_outs(outs, nb_id):
 
 def get_dagstermill_op_params(nb_path: str):
     nb = nbformat.read(nb_path, as_version=4)
-    op_params.NbOpParams.current_op_id, nb_name = op_params.op_name_from_nb_path(nb_path)
+    op.NbOp.current_op_id, nb_name = op.op_name_from_nb_path(nb_path)
     for cell in nb.cells:
         tags = []
         if cell.cell_type == 'code':
             tags = get_cell_tags(cell)
         if 'op_parameters' in tags:
             exec(cell.source)
-            params = op_params.NbOpParams.params()
+            params = op.NbOp.params()
     if 'ins' in params:
         params['ins'] = nb_ins2dagster_ins(
             nb_ins=params['ins'],
@@ -55,7 +55,7 @@ def get_dagstermill_op_params(nb_path: str):
     if 'outs' in params:
         params['outs'] = nb_outs2dagster_outs(
             outs=params['outs'],
-            nb_id=op_params.NbOpParams.current_op_id
+            nb_id=op.NbOp.current_op_id
         )
     params['notebook_path'] = nb_path
     params['name'] = nb_name

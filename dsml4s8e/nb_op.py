@@ -1,9 +1,14 @@
+from dsml4s8e import dotted_urls_names
+from dsml4s8e.storage_catalog import StorageCatalogABC
+from dsml4s8e.nb_data_keys import NotebookDataKeys, data_key2url_name
+
+import dagstermill
+
 from pathlib import Path
 from typing import Dict
 from functools import cached_property
 from dagster import Field
-
-import dagstermill
+from dataclasses import dataclass
 
 
 def op_name_from_nb_path(nb_path, level_from_root=2):
@@ -28,7 +33,13 @@ class MissedInsParameters(Exception):
         super().__init__(self.message)
 
 
-class NbOpParams:
+@dataclass(frozen=True)
+class NbDataUrls:
+    ins: object
+    outs: object
+
+
+class NbOp:
     current_op_id = 'from_jupyter'
     ops: Dict[str, dict] = {}
 
@@ -84,6 +95,41 @@ class NbOpParams:
         if len(empty_vals) > 0:
             raise MissedInsParameters(empty_vals, ins)
         return urls_dict
+
+    def get_data_urls(
+            self,
+            locals_: Dict[str, dict],
+            storage_catalog: StorageCatalogABC
+            ) -> NbDataUrls:
+        self.set_locals(locals_)
+        op_params = self.op_params
+        self.nb_data_keys = NotebookDataKeys(
+            ins_data_key_dag_name=op_params.get('ins', {}),
+            outs=op_params.get('outs', []),
+            op_id=self.id
+        )
+        _ins_dict = {}
+        self._outs_dict = {}
+        if 'ins' in op_params:
+            _ins_dict = self.get_ins_data_urls(locals_)
+        if 'outs' in op_params:
+            self._outs_dict = storage_catalog.get_outs_data_urls(
+                data_kyes=self.nb_data_keys.outs,
+            )
+        return NbDataUrls(
+            ins=dotted_urls_names.do_dotted_urls_names(_ins_dict),
+            outs=dotted_urls_names.do_dotted_urls_names(self._outs_dict)
+            )
+
+    def send_outs_to_next_step(self):
+        print('outs:')
+        for data_obj_key, url in self._outs_dict.items():
+            url_name = data_key2url_name(data_obj_key)
+            print(f'{url_name} = "{url}"')
+            dagstermill.yield_result(
+                url,
+                output_name=url_name
+             )
 
     def get_context(self):
         return dagstermill.get_context(op_config=self.config)

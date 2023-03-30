@@ -2,7 +2,6 @@ from .context_mock import get_context_mock
 
 from dsml4s8e.dsmlcatalog import dagster_home
 from dsml4s8e import nb_data_keys
-from collections import namedtuple
 import os
 
 
