@@ -1,4 +1,4 @@
-from dsml4s8e.op_params_from_nb import get_dagstermill_op_params
+from dsml4s8e.op_params_from_nb import dagstermill_op_params_from_nb
 from dagstermill import define_dagstermill_op, local_output_notebook_io_manager
 from dagster import (
     job,
@@ -12,11 +12,11 @@ def full_path(path: str) -> str:
     return str(Path(path).resolve())
 
 
-op_1_params = get_dagstermill_op_params(full_path("../data_load/nb_1.ipynb"))
+op_1_params = dagstermill_op_params_from_nb(full_path("../data_load/nb_1.ipynb"))
 op1 = define_dagstermill_op(**op_1_params,
                             save_notebook_on_failure=True)
 
-op_2_params = get_dagstermill_op_params(full_path("../data_load/nb_2.ipynb"))
+op_2_params = dagstermill_op_params_from_nb(full_path("../data_load/nb_2.ipynb"))
 op2 = define_dagstermill_op(**op_2_params,
                             save_notebook_on_failure=True)
 
