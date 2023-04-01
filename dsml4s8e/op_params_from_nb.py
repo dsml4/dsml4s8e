@@ -37,12 +37,14 @@ def nb_outs2dagster_outs(outs, nb_id):
 
 def dagstermill_op_params_from_nb(nb_path: str):
     nb = nbformat.read(nb_path, as_version=4)
-    op.NbOp.current_op_id, nb_name = op.op_name_from_nb_path(nb_path)
     for cell in nb.cells:
         tags = []
         if cell.cell_type == 'code':
             tags = get_cell_tags(cell)
         if 'op_parameters' in tags:
+            op.NbOp.set_current_nb_path(nb_path)
+            # In this cell the object of NbOp is creaded
+            # in NbOp.__init__ 
             exec(cell.source)
             params = op.NbOp.params()
     if 'ins' in params:
@@ -52,11 +54,10 @@ def dagstermill_op_params_from_nb(nb_path: str):
     if 'outs' in params:
         params['outs'] = nb_outs2dagster_outs(
             outs=params['outs'],
-            nb_id=op.NbOp.current_op_id
+            nb_id=op.NbOp._current_op_id
         )
     params['notebook_path'] = nb_path
-    params['name'] = nb_name
-    params['output_notebook_name'] = f"out_{nb_name}"
+    params['output_notebook_name'] = f"out_{params['name']}"
     local_path = '/'.join(nb_path.split('/')[-2:])
     params['description'] = f"path: {local_path}"
     return params
