@@ -89,13 +89,14 @@ class NbOp:
             # If the static method set_current_nb_path has been called outside.
             # This code is executed to extract op parameters from a notebook.
             # For more details look op_params_nb.dagstermill_op_params_from_nb
-            op_name, op_id = self._op_name_and_id_from_nb_path(
+            (
+             self._op_params['name'],
+             NbOp._current_op_id
+             ) = self._op_name_and_id_from_nb_path(
                 nb_path=self._current_nb_path,
                 level_from_root=level_from_root
             )
-            self._op_params['name'] = op_name
-            NbOp._current_op_id = op_id
-            NbOp.ops[op_id] = self._op_params
+            NbOp.ops[NbOp._current_op_id] = self._op_params
 
     def _get_ins_data_urls(self, locals_: Dict[str, dict]) -> Dict[str, str]:
         """
