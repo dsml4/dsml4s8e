@@ -1,0 +1,6 @@
+ops:
+  nb_2:
+    config:
+      b: 300
+    inputs:
+      url_nb_1_data1: /home/jovyan/work/dagster_home/storage/f95df29a-95b9-4eb9-9b51-fb10c8cb5f7c/nb_1/data1
