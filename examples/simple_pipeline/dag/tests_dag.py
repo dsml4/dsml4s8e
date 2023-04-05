@@ -10,10 +10,8 @@ import sys
 
 
 if __name__ == "__main__":
-    # do_execute_command(pipeline, instance, config, mode, tags, solid_selection, preset)
-    sys.argv[1]
-    print(sys.argv[1])
-    with open('nb_2.yaml') as f:
+
+    with open(sys.argv[1]) as f:
         config = yaml.load(f, Loader=SafeLoader)
 
     with get_instance_for_service("``dagster job execute``") as instance:
