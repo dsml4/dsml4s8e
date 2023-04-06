@@ -13,6 +13,10 @@ def full_path(nb_name: str) -> str:
     return str(p.joinpath(p, nb_name))
 
 
+op_0_params = dagstermill_op_params_from_nb(full_path("data_load/nb_0.ipynb"))
+op0 = define_dagstermill_op(**op_0_params,
+                            save_notebook_on_failure=True)
+
 op_1_params = dagstermill_op_params_from_nb(full_path("data_load/nb_1.ipynb"))
 op1 = define_dagstermill_op(**op_1_params,
                             save_notebook_on_failure=True)
@@ -55,7 +59,16 @@ def start(context):
     }
 )
 def dagstermill_pipeline():
-    res_urls = op1()
-    res = op2(*res_urls[:-1])
-    final_op(*res[:-1])
+    out_urls_op0 = op0()
+    out_urls_op1 = op1()
+
+    # ins={'simple_pipeline.data_load.nb_1.data1': 'url_nb_1_data1',
+    #      'simple_pipeline.data_load.nb_1.data3': 'url_nb_1_data3'
+
+    f_params = [out_urls_op1[0],
+                out_urls_op1[2],
+                out_urls_op0[0]
+                ]
+    res = op2(*f_params)
+    #final_op(*res[:-1])
     # start()
