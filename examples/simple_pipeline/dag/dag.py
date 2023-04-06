@@ -8,15 +8,16 @@ from dagster import (
 from pathlib import Path
 
 
-def full_path(path: str) -> str:
-    return str(Path(path).resolve())
+def full_path(nb_name: str) -> str:
+    p = Path(__file__).parent.parent
+    return str(p.joinpath(p, nb_name))
 
 
-op_1_params = dagstermill_op_params_from_nb(full_path("../data_load/nb_1.ipynb"))
+op_1_params = dagstermill_op_params_from_nb(full_path("data_load/nb_1.ipynb"))
 op1 = define_dagstermill_op(**op_1_params,
                             save_notebook_on_failure=True)
 
-op_2_params = dagstermill_op_params_from_nb(full_path("../data_load/nb_2.ipynb"))
+op_2_params = dagstermill_op_params_from_nb(full_path("data_load/nb_2.ipynb"))
 op2 = define_dagstermill_op(**op_2_params,
                             save_notebook_on_failure=True)
 
@@ -58,7 +59,3 @@ def dagstermill_pipeline():
     res = op2(*res_urls[:-1])
     final_op(*res[:-1])
     # start()
-
-
-if __name__ == "__main__":
-    result = dagstermill_pipeline.execute_in_process()
