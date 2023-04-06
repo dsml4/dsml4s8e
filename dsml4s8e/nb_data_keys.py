@@ -13,6 +13,10 @@ class DataKeys:
     keys: tuple[str]
 
 
+def make_data_key(op_id: str, var_name):
+    return f'{op_id}.{var_name}'
+
+
 class NotebookDataKeys:
     def __init__(
             self,
@@ -27,7 +31,8 @@ class NotebookDataKeys:
         <pipeline>.<component>.<netebook>.<data_obj_name>
         '''
         self.ins = DataKeys(ins_data_key_dag_name.keys())
-        self.outs = DataKeys([f'{op_id}.{a}' for a in outs])
+        self.outs = DataKeys([make_data_key(op_id, var_name) for
+                              var_name in outs])
 
     def __str__(self):
         interface_info = {
