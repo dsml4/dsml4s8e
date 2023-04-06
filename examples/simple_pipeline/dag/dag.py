@@ -12,7 +12,7 @@ def full_path(nb_name: str) -> str:
     p = Path(__file__).parent.parent
     return str(p.joinpath(p, nb_name))
 
-
+'''
 op_0_params = dagstermill_op_params_from_nb(full_path("data_load/nb_0.ipynb"))
 op0 = define_dagstermill_op(**op_0_params,
                             save_notebook_on_failure=True)
@@ -25,30 +25,14 @@ op_2_params = dagstermill_op_params_from_nb(full_path("data_load/nb_2.ipynb"))
 op2 = define_dagstermill_op(**op_2_params,
                             save_notebook_on_failure=True)
 
-
-@op(
-    description="""end op""",
-    ins={
-        "data2": In(str),
-    },
-    out={},
-)
-def final_op(context, data2: str):
-    context.log.info(data2)
-    # context.log.info(output_notebook_name)
+'''
 
 
-@op(
-    description="""start op""",
-    ins={
-    },
-    out={},
-)
-def start(context):
-    import time
-    time.sleep(3)
-    context.log.info('log')
-    # context.log.info(output_notebook_name)
+def define_nb_op(nb_path: str):
+    params = dagstermill_op_params_from_nb(full_path(nb_path))
+    return define_dagstermill_op(**params,
+                                 save_notebook_on_failure=True)
+
 
 
 @job(
@@ -59,16 +43,24 @@ def start(context):
     }
 )
 def dagstermill_pipeline():
-    out_urls_op0 = op0()
-    out_urls_op1 = op1()
+    nbs = [
+        "data_load/nb_0.ipynb",
+        "data_load/nb_1.ipynb",
+        "data_load/nb_2.ipynb"
+    ]
+    ops = [define_nb_op(nb) for nb in nbs]
+    out_urls_op0 = ops[0]()
+    out_urls_op1 = ops[1]()
 
     # ins={'simple_pipeline.data_load.nb_1.data1': 'url_nb_1_data1',
     #      'simple_pipeline.data_load.nb_1.data3': 'url_nb_1_data3'
-
+    print(list(ops[0].outs.keys()))
+    print(ops[2].positional_inputs)
     f_params = [out_urls_op1[0],
                 out_urls_op1[2],
                 out_urls_op0[0]
                 ]
-    res = op2(*f_params)
+    res = ops[2](*f_params)
+    print(res)
     #final_op(*res[:-1])
     # start()
