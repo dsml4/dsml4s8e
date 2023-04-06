@@ -161,14 +161,19 @@ class NbOp:
             )
 
     def pass_outs_to_next_steps(self):
-        print('outs:')
+        out_keys = []
         for data_obj_key, url in self._outs_dict.items():
             url_name = self.data_key2url_name(data_obj_key)
-            print(f'{url_name} = "{url}"')
+            out_keys.append((f"'{data_obj_key}'",
+                             f"'{url_name}'"))
+            print(f"{url_name} = '{url}'")
             dagstermill.yield_result(
                 url,
                 output_name=url_name
              )
+        print("\n(data_key: url_variable_name) to put in ins dict of next ops")
+        for url_key in out_keys:
+            print(f'{url_key[0]}:{url_key[1]},')
 
     def get_context(self):
         return dagstermill.get_context(op_config=self.config)
