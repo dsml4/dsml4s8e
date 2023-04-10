@@ -1,4 +1,4 @@
-from dsml4s8e.nb_data_keys import NotebookDataKeys
+from dsml4s8e.data_catalog import NotebookPaths
 import dsml4s8e.nb_op as op
 
 from dagster import Out, In
@@ -24,14 +24,14 @@ def nb_ins2dagster_ins(nb_ins):
 
 
 def nb_outs2dagster_outs(outs, nb_id):
-    nb_data_keys = NotebookDataKeys(
-        ins_data_key_dag_name={},
-        outs=outs,
+    nb_catalog_paths = NotebookPaths(
+        ins_catalog_paths=[],
+        outs_vars=outs,
         op_id=nb_id
     )
     return {
-        op.NbOp.data_key2url_name(k): Out(str)
-        for k in nb_data_keys.outs.keys
+        op.NbOp.dotted_path2path_varname(p): Out(str)
+        for p in nb_catalog_paths.outs.paths
     }
 
 

@@ -20,8 +20,8 @@ def test_get_op_config():
     assert (dag_op_params.config['a'] == 10)
 
 
-def test_get_ins_data_url():
-    url_nb_1_data1 = 'url'
+def test_get_ins_data_paths():
+    path_nb_1_data1 = 'path'
     nb_path = '/home/jovyan/work/dev/pipeline_example/data_load/nb_1.ipynb'
     context = get_context_mock(
         run_id='0000',
@@ -35,17 +35,17 @@ def test_get_ins_data_url():
                 default_value=10
                 )
         },
-        ins={'simple_pipeline.data_load.nb_1.data1': 'url_nb_1_data1'},
+        ins={'simple_pipeline.data_load.nb_1.data1': 'path_nb_1_data1'},
         outs=['data1']
         )
     assert (op.config['a'] == 10)
-    ins_data_urls: Dict[str, str] = op._get_ins_data_urls(
+    ins_data_urls: Dict[str, str] = op._get_ins_data_paths(
         locals_=locals())
     assert (ins_data_urls['simple_pipeline.data_load.nb_1.data1'] ==
-            'url')
+            'path')
 
 
-def test_get_data_urls():
+def test_get_data_paths():
     nb_path = '/home/jovyan/work/dev/pipeline_example/data_load/nb.ipynb'
     context = get_context_mock(
         run_id='0000',
@@ -63,7 +63,7 @@ def test_get_data_urls():
                 outs=['data1']
             )
     var_name = 'val'
-    urls = op.get_data_urls(
+    urls = op.get_catalog(
         locals_=locals(),
         storage_catalog=LoacalStorageCatalog(
             '/home/jovyan/data',
