@@ -11,8 +11,9 @@ import sys
 
 if __name__ == "__main__":
 
-    with open(sys.argv[1]) as f:
-        config = yaml.load(f, Loader=SafeLoader)
+    config = None
+    # with open(sys.argv[1]) as f:
+    #    config = yaml.load(f, Loader=SafeLoader)
 
     with get_instance_for_service("``dagster job execute``") as instance:
         pipeline = reconstructable(dagstermill_pipeline)
@@ -20,26 +21,8 @@ if __name__ == "__main__":
             pipeline=pipeline,
             run_config=config,
             instance=instance,
-            solid_selection=['nb_2'],
+            # solid_selection=['nb_2'],
         )
         print(results)
         print(results.run_id)
-        print(results.node_result_list[0].output_values['url_nb_2_data2'])
-
-        storage_dict = f'{instance.root_directory}/storage'
-        nb_name = list(config['ops'].keys())[0]
-        output_var_name = list(
-            results.pipeline_def.graph.node_dict['nb_2'].output_dict.keys()
-            )[0]
-
-        local_alias = output_var_name[len('url_') + len(nb_name) + len('_'):]
-
-        (res_output_values,
-         output_values
-         ) = (
-            results.node_result_list[0].output_values[output_var_name],
-            f'{storage_dict}/{results.run_id}/{nb_name}/{local_alias}'
-        )
-
-        print(res_output_values == output_values)
-        print(results.success)
+        print(results.node_result_list[0].output_values['url_nb_1_data1'])
