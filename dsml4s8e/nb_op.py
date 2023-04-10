@@ -1,6 +1,6 @@
-from dsml4s8e import dotted_urls_names
+from dsml4s8e import dotted_catalog_path
 from dsml4s8e.storage_catalog import StorageCatalogABC
-from dsml4s8e.nb_data_keys import NotebookDataKeys
+from dsml4s8e.data_catalog import NotebookPaths
 
 import dagstermill
 
@@ -34,7 +34,7 @@ class MissedInsParameters(Exception):
 
 
 @dataclass(frozen=True)
-class NbDataUrls:
+class NbDataCatalog:
     ins: object
     outs: object
 
@@ -45,8 +45,8 @@ class NbOp:
     ops: Dict[str, dict] = {}
 
     @classmethod
-    def data_key2url_name(cls, data_key: str):
-        return '_'.join(['url'] + data_key.split('.')[-2:])
+    def dotted_path2path_varname(cls, path: str):
+        return '_'.join(['path'] + path.split('.')[-2:])
 
     @classmethod
     def set_current_nb_path(cls, nb_path: str):
@@ -98,32 +98,32 @@ class NbOp:
             )
             NbOp.ops[NbOp._current_op_id] = self._op_params
 
-    def _get_ins_data_urls(self, locals_: Dict[str, dict]) -> Dict[str, str]:
+    def _get_ins_data_paths(self, locals_: Dict[str, dict]) -> Dict[str, str]:
         """
-        Create the data_urls dict with keys from ins and values from locals_
-        (join by data_url_key).
+        Create the data_paths dict with keys from ins and values from locals_
+        (join by data_path).
         Variables with names from ins dict values must be in locals_
         else the MissedInsParameters exсeption is raised:
-        'ins': {'data_url_key': 'nb_data1'} ->
-               {data_url_key: _locals['nb_data1']}.
+        'ins': {'data_path': 'nb_data1'} ->
+               {data_path: _locals['nb_data1']}.
         Where locals_ is a Local symbol Table returning by
         the Build-In Python function locals().
         """
         ins: Dict[str, dict] = self._op_params['ins']
-        urls_dict = {
+        paths_dict = {
             k: locals_.get(k_alias, '')
             for k, k_alias in ins.items()
         }
-        empty_vals = [k for k, url in urls_dict.items() if not url]
+        empty_vals = [k for k, path in paths_dict.items() if not path]
         if len(empty_vals) > 0:
             raise MissedInsParameters(empty_vals, ins)
-        return urls_dict
+        return paths_dict
 
-    def get_data_urls(
+    def get_catalog(
             self,
             locals_: Dict[str, dict],
             storage_catalog: StorageCatalogABC
-            ) -> NbDataUrls:
+            ) -> NbDataCatalog:
         """
         This metod calls from notebook.
         locals_ is a Local symbol Table
@@ -142,38 +142,38 @@ class NbOp:
                     level_from_root=self._level_from_root
                     )
         op_params = self._op_params
-        self.nb_data_keys = NotebookDataKeys(
-            ins_data_key_dag_name=op_params.get('ins', {}),
-            outs=op_params.get('outs', []),
+        self.nb_data_keys = NotebookPaths(
+            ins_catalog_paths=op_params.get('ins', {}),
+            outs_vars=op_params.get('outs', []),
             op_id=self._id
         )
         _ins_dict = {}
         self._outs_dict = {}
         if 'ins' in op_params:
-            _ins_dict = self._get_ins_data_urls(locals_)
+            _ins_dict = self._get_ins_data_paths(locals_)
         if 'outs' in op_params:
-            self._outs_dict = storage_catalog.get_outs_data_urls(
-                data_kyes=self.nb_data_keys.outs,
+            self._outs_dict = storage_catalog.get_outs_data_paths(
+                catalog=self.nb_data_keys.outs,
             )
-        return NbDataUrls(
-            ins=dotted_urls_names.do_dotted_urls_names(_ins_dict),
-            outs=dotted_urls_names.do_dotted_urls_names(self._outs_dict)
+        return NbDataCatalog(
+            ins=dotted_catalog_path.do_dotted_paths(_ins_dict),
+            outs=dotted_catalog_path.do_dotted_paths(self._outs_dict)
             )
 
     def pass_outs_to_next_steps(self):
-        out_keys = []
-        for data_obj_key, url in self._outs_dict.items():
-            url_name = self.data_key2url_name(data_obj_key)
-            out_keys.append((f"'{data_obj_key}'",
-                             f"'{url_name}'"))
-            print(f"{url_name} = '{url}'")
+        out_paths = []
+        for dotted_path, storage_path in self._outs_dict.items():
+            path_varname = self.dotted_path2path_varname(dotted_path)
+            out_paths.append((f"'{dotted_path}'",
+                             f"'{path_varname}'"))
+            print(f"{path_varname} = '{storage_path}'")
             dagstermill.yield_result(
-                url,
-                output_name=url_name
+                storage_path,
+                output_name=path_varname
              )
-        print("\n(data_key: url_variable_name) to put in ins dict of next ops")
-        for url_key in out_keys:
-            print(f'{url_key[0]}:{url_key[1]},')
+        print("\n(catalog_path: path_variable_name) to put in ins dict of next ops")
+        for path in out_paths:
+            print(f'{path[0]}:{path[1]},')
 
     def get_context(self):
         return dagstermill.get_context(op_config=self.config)

@@ -45,5 +45,5 @@ def test_nb_outs2dagster_outs():
     outs = ['data1']
     nb_id = 'pipeline_example.nb'
     dagster_ins = op_params_from_nb.nb_outs2dagster_outs(outs, nb_id)
-    assert (dagster_ins['url_nb_data1'] ==
+    assert (dagster_ins['path_nb_data1'] ==
             Out(str))

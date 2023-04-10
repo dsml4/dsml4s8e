@@ -13,7 +13,7 @@ def test_job():
                 'config': {
                     'b': 300},
                 'inputs': {
-                    'url_nb_1_data1': 'uri value'
+                    'path_nb_1_data1': 'uri value'
                     }
                 }
             }
@@ -39,7 +39,7 @@ def test_job():
             results.pipeline_def.graph.node_dict['nb_2'].output_dict.keys()
             )[0]
 
-        local_alias = output_var_name[len('url_') + len(nb_name) + len('_'):]
+        local_alias = output_var_name[len('path_') + len(nb_name) + len('_'):]
 
         (res_output_values,
          output_values
