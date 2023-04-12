@@ -48,7 +48,7 @@ Open Dagster in a browser: http://localhost:3000/
 
 A standalone notebook is a main building block in our pipelines building flow.
 
-To do a notebook capable to be loaded into dagster pipeline we need to add 3 specific cells to the notebook. Next, we will discuss what concerns are addressed each of the cells and what library classes are responsible for each one.
+To do notebooks capable to be joined into a dagster pipeline we need to add **4** specific cells to a notebook. Next, we will discuss what concerns are addressed each of the cells and what library classes are responsible for each one.
 
 <img width="1108" alt="mandatory_cells_4" src="https://user-images.githubusercontent.com/1010096/228894923-e9711a62-9bcc-4b78-ba78-ad4224eae0b8.png">
 
