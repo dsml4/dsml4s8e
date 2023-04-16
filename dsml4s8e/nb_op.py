@@ -162,6 +162,8 @@ class NbOp:
 
     def pass_outs_to_next_steps(self):
         out_paths = []
+
+        print("Strings below can be pasted in cells with tags 'parameters' of next notebooks.\n")
         for dotted_path, storage_path in self._outs_dict.items():
             path_varname = self.dotted_path2path_varname(dotted_path)
             out_paths.append((f"'{dotted_path}'",
@@ -171,7 +173,8 @@ class NbOp:
                 storage_path,
                 output_name=path_varname
              )
-        print("\n(catalog_path: path_variable_name) to put in ins dict of next ops")
+        print("\nStrings below can be pasted in code of declaration of NbOp")
+        print("in cells with tags 'op_parameters' of next notebooks.\n")
         for path in out_paths:
             print(f'{path[0]}:{path[1]},')
 
