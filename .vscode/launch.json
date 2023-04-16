@@ -10,7 +10,9 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false,
+            "cwd": "/home/jovyan/work/dev/dsml4s8e/examples/simple_pipeline/dag/",
+            "args": ["nb_1.yaml"]
         }
     ]
 }
