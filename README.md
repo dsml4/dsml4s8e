@@ -1,17 +1,19 @@
 
-# dsml4s8e
+# Dsml4s8e
 **D**ata **S**cience / **ML** flow(**4**) **s**tandalon(**8**)**e**
+**Dsml4s8e** is a python library that aims to extend Dagster to: 
 
-**dsml4s8e** is the dagster extension that aims to:
- 1. Simplify building of dagster pipelines from **standalon** notebooks
- 2. Standardize a structure of ML/DS pipeline projects to easy sharing
- 3. Manage experiments data and artefacts in a continual improvement process
+ 1. Simplify building of pipelines from **standalon** notebooks
+ 2. Standardize a structure of ML/DS pipeline projects to easy share and continuous improve them
+ 3. Manage pipelines data in a process of pipelines continuous improvement
 
-It makes possible the following workflow:
+Dsml4s8e designed to support the following workflow:
  1. Define a project structure for your pipeline and a structure of the pipeline data catalog
  2. Develop **standalon** Jupyter notebooks with **clear interface**
  3. Build a **pipeline** and deloy in vary environments(experimental/test/prod) and on vary infrastructure
  4. Configure and run the certaine version of pipeline many times in vary environments and on vary infrastructure 
+
+Dsml4s8e proper for build a cloud agnostic DSML platform.
 
 You can play with the demo pipeline skelet project:
 
