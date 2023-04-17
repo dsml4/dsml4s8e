@@ -153,6 +153,6 @@ def dagstermill_pipeline():
 
 ```
 
-As a result a dagster pipeline will be built from standalone notebooks:
+As a result, a dagster pipeline will be built from standalone notebooks:
   
 ![Simple Pipeline](https://user-images.githubusercontent.com/1010096/232598898-b536ec12-26da-4693-a4e9-ba15858164de.svg)
