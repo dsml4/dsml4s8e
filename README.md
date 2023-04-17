@@ -41,29 +41,32 @@ Open JupyterLab in a browser: http://localhost:8888/lab
 
 Open Dagster in a browser: http://localhost:3000/
 
-<img width="1076" alt="dagstermill_pipeline" src="https://user-images.githubusercontent.com/1010096/228894074-704a1484-519b-43f4-ba5c-194b6a81bb8a.png">
+
+<img width="1387" alt="simple_pipeline_Overview" src="https://user-images.githubusercontent.com/1010096/232596393-a7da68b5-9d17-4e78-bc85-123bf756976d.png">
 
 
 ## The standalone notebook specification
 
 A standalone notebook is a main building block in our pipelines building flow.
 
-To do notebooks capable to be joined into a dagster pipeline we need to add **4** specific cells to a notebook. Next, we will discuss what concerns are addressed each of the cells and what library classes are responsible for each one.
+To do notebooks capable to be joined into a dagster pipeline we need to add **4** mandatory cells to a notebook. Next, we will discuss what concerns are addressed each of the cells and what library classes are responsible for each one.
 
-<img width="1108" alt="mandatory_cells_4" src="https://user-images.githubusercontent.com/1010096/228894923-e9711a62-9bcc-4b78-ba78-ad4224eae0b8.png">
+
+<img width="945" alt="notebook_4_cell_specification" src="https://user-images.githubusercontent.com/1010096/232596564-99a1108d-cbcc-4ded-84fb-ba4068f1b24f.png">
 
 
 ### A cell with the op_parameters tag
 
 A cell tagged **'op_parameters'** responses for an integration of a standalone notebook with Dagster. In the load stage dictionary of parameters from this cell is trasformed to dagstermill format and passed to a function define_dagstermill_op from dagstermill library to make parameters avalible in Dagster Launchpad to edit run configuration in the launge stage.
 
-Definition of a dagster operation in a standalone notebook:
+A definition of a Dagster op in a standalone notebook in JupyterLab:
 
-<img width="827" alt="op_parameters_cell" src="https://user-images.githubusercontent.com/1010096/228895556-c88742e3-59ed-419e-b0a1-d9811300d624.png">
+<img width="982" alt="op_parameters" src="https://user-images.githubusercontent.com/1010096/232597083-9601c183-fbaf-4c98-ad8b-9e3d57e0b162.png">
 
-Launchpad:
+Configure op in Dagster Launchpad:
 
-<img width="846" alt="notebook_op_in_launchpad" src="https://user-images.githubusercontent.com/1010096/228895622-989dc0cb-d7d5-458f-96ff-12b15310ddff.png">
+
+<img width="808" alt="simple_pipeline" src="https://user-images.githubusercontent.com/1010096/232597525-36053177-5b58-4aa9-8668-6912c7c63036.png">
 
 
 ### A cell with the parameters tag
@@ -82,70 +85,51 @@ context = op.get_context()
 
 If a notebook is run by dagster then it replace 'parameter' cell with 'injected-parameters' cell.
 
-<img width="1441" alt="Runs_results" src="https://user-images.githubusercontent.com/1010096/228903557-74ae28fe-e8e4-4b09-8734-e5e0491c4053.png">
+<img width="999" alt="runs" src="https://user-images.githubusercontent.com/1010096/232601657-a8e3788a-96a8-4043-a14d-77306f7318f4.png">
+
+<img width="1001" alt="open_path" src="https://user-images.githubusercontent.com/1010096/232603425-b6db4e71-893d-4633-8713-f1feaf96ecbb.png">
+
+<img width="1180" alt="out_nb_2" src="https://user-images.githubusercontent.com/1010096/232603465-41f3f647-4898-439f-95de-f00af1ba8da8.png">
 
 
-<img width="1518" alt="injected" src="https://user-images.githubusercontent.com/1010096/228903342-c6d0681d-f2d1-44e6-92f3-75fc97da5c82.png">
-
-
-### A cell with urls interface 
+### A cell with op data catalog initialization
 
 The pipeline data catalog
+A name of a path variable must be unique for each notebook namespace where the variable is used, thus a name of path variable could be shorter than the corresponding catalog path.
 
-LocalStorage Catalog is a class responsible for a structure of a data catalog, but a structure is fully customizable using StorageCatalogABC.
 
-'/home/jovyan/data/dev/pipeline_example/data_load/9e4d0418-b711-4b84-83e3-28bcd521c260/nb_1/data1'
+For each output method of Op.get_catalog() generate catalog paths and this method uses the catalog object to create paths in the specific storage(the file system) by catalog paths.
+LocalStorage derived from StorageCatalogABC, this class responsible for a structure of a data catalog in a certain storage, but a catalog structure is fully customizable using StorageCatalogABC.
+For each output from the output list method of Op.get_catalog() generate catalog paths and this method uses the catalog object to create paths in the specific storage(the file system) by catalog paths.
 
- * /home/jovyan/data/ - prefix
- * dev/ - stage in development life cycle
- * pipeline_example/ - pipeline name
- * data_load/ - component name 
- * 9e4d0418-b711-4b84-83e3-28bcd521c260/ - run_id
- * nb_1/ - notebook name
- * data1 - data object
+
+<img width="951" alt="Initialize_catalog_outs" src="https://user-images.githubusercontent.com/1010096/232607728-c01acde4-bbbd-4bab-9cb6-25ab111fe172.png">
+
 
 ### A cell responsible for outs passing to the next step
 
+In the last 4-the cell we inform of next steps of a pipeline where produced data are stored. Now we can link this notebook (step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outpost as inputs for the next netbooks. We can copy strings from the cell output and paste them to NbOps declarations in the cells target with the ‘op_parametrs’ of the next notebook in a pipeline.
+
+Join a ins dictionary from NbOps and paths variables from a cell with the tag parameters passed to NbOps py passing variable locals_ 
+
 ```python
 op.pass_outs_to_next_step()
+
 ```
+
+<img width="1758" alt="copy_passte_ins_variables" src="https://user-images.githubusercontent.com/1010096/232604788-42a54dba-f098-47f5-ab5d-a8fbf90e0197.png">
+
 
 ## A dagster pipleline code
 
 ```python
-from dsml4s8e.op_params_from_nb import dagstermill_op_params_from_nb
-from dagstermill import define_dagstermill_op, local_output_notebook_io_manager
-from dagster import (
-    job,
-    op,
-    In
-)
+# dag.py
+
+from dsml4s8e.define_job import define_job
+from dagstermill import local_output_notebook_io_manager
+from dagster import job
+
 from pathlib import Path
-
-
-def full_path(path: str) -> str:
-    return str(Path(path).resolve())
-
-
-op_1_params = dagstermill_op_params_from_nb(full_path("../data_load/nb_1.ipynb"))
-op1 = define_dagstermill_op(**op_1_params,
-                            save_notebook_on_failure=True)
-
-op_2_params = dagstermill_op_params_from_nb(full_path("../data_load/nb_2.ipynb"))
-op2 = define_dagstermill_op(**op_2_params,
-                            save_notebook_on_failure=True)
-
-
-@op(
-    description="""end op""",
-    ins={
-        "data2": In(str),
-    },
-    out={},
-)
-def final_op(context, data2: str):
-    context.log.info(data2)
-    # context.log.info(output_notebook_name)
 
 
 @job(
@@ -156,16 +140,19 @@ def final_op(context, data2: str):
     }
 )
 def dagstermill_pipeline():
-    res_urls = op1()
-    res = op2(*res_urls[:-1])
-    final_op(*res[:-1])
+    module_path = Path(__file__)
+    define_job(
+        root_path=module_path.parent.parent,
+        nbs_sequence=[
+            "data_load/nb_0.ipynb",
+            "data_load/nb_1.ipynb",
+            "data_load/nb_2.ipynb"
+        ]
+    )
+
 
 ```
 
-As a result the followed dagster pipeline will be built from standalone notebooks:
-
-![Job_simple_pipeline](https://user-images.githubusercontent.com/1010096/228895849-12a04f1b-a4c0-4bdf-ab88-779d8e84d3b7.svg)
-
-
-
+As a result a dagster pipeline will be built from standalone notebooks:
   
+![Simple Pipeline](https://user-images.githubusercontent.com/1010096/232598898-b536ec12-26da-4693-a4e9-ba15858164de.svg)
