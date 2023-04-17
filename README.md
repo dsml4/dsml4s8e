@@ -120,7 +120,7 @@ op.pass_outs_to_next_step()
 <img width="1758" alt="copy_passte_ins_variables" src="https://user-images.githubusercontent.com/1010096/232604788-42a54dba-f098-47f5-ab5d-a8fbf90e0197.png">
 
 
-## A dagster pipleline code
+## Dagster pipleline code
 
 ```python
 # dag.py
