@@ -1,15 +1,8 @@
 from dsml4s8e.define_job import define_job
-from dagstermill import define_dagstermill_op, local_output_notebook_io_manager
-from dagster import (
-    job,
-    OpDefinition
-)
+from dagstermill import local_output_notebook_io_manager
+from dagster import job
 
 from pathlib import Path
-from typing import (
-    Tuple,
-    Sequence
-)
 
 
 @job(
