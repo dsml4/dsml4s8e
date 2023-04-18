@@ -1,5 +1,5 @@
 from dsml4s8e import storage_catalog as sc
-from dsml4s8e.data_catalog import DataCatalogPath
+from dsml4s8e.data_catalog import DataCatalogPaths
 from typing import List, Dict
 
 
@@ -37,7 +37,7 @@ class LoacalStorageCatalog(sc.StorageCatalogABC):
     def is_valid(self) -> bool:
         return True
 
-    def get_outs_data_paths(self, catalog: DataCatalogPath) -> Dict[str, str]:
+    def get_outs_data_paths(self, catalog: DataCatalogPaths) -> Dict[str, str]:
         return dict(
                 [(
                     k,

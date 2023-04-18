@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict
-from dsml4s8e.data_catalog import DataCatalogPath
+from dsml4s8e.data_catalog import DataCatalogPaths
 
 
 class StorageCatalogABC(ABC):
@@ -16,7 +16,7 @@ class StorageCatalogABC(ABC):
     @abstractmethod
     def get_outs_data_paths(
         self,
-        catalog: DataCatalogPath
+        catalog: DataCatalogPaths
     ) -> Dict[str, str]:
         """
         A map of catalog paths to storage paths

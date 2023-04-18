@@ -1,5 +1,5 @@
 from .. import storage_catalog as sc
-from ..data_catalog import DataCatalogPath
+from ..data_catalog import DataCatalogPaths
 from typing import Dict
 
 import os
@@ -31,7 +31,7 @@ class DagsterStorageCatalog(sc.StorageCatalogABC):
     def is_valid(self) -> bool:
         return True
 
-    def get_outs_data_paths(self, catalog: DataCatalogPath) -> Dict[str, str]:
+    def get_outs_data_paths(self, catalog: DataCatalogPaths) -> Dict[str, str]:
         return dict(
             [(
                 cat_path,

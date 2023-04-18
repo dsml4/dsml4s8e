@@ -4,7 +4,7 @@ from typing import List
 
 
 @dataclass(frozen=True)
-class DataCatalogPath:
+class DataCatalogPaths:
     '''
     list of catalog data paths
     format of catalog path: <pipeline>.<component>.<notebook>.<data_obj_name>
@@ -29,8 +29,8 @@ class NotebookPaths:
         format of keys of data obj:
         <pipeline>.<component>.<netebook>.<data_obj_name>
         '''
-        self.ins = DataCatalogPath(ins_catalog_paths)
-        self.outs = DataCatalogPath(
+        self.ins = DataCatalogPaths(ins_catalog_paths)
+        self.outs = DataCatalogPaths(
             [make_data_catalog_path(op_id, var_name) for
              var_name in outs_vars])
 
