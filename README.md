@@ -55,7 +55,7 @@ To do notebooks capable to be joined into a dagster pipeline we need to add **4*
 <img width="945" alt="notebook_4_cell_specification" src="https://user-images.githubusercontent.com/1010096/232596564-99a1108d-cbcc-4ded-84fb-ba4068f1b24f.png">
 
 
-### A cell with the op_parameters tag
+### The 1th cell with the op_parameters tag
 
 A cell tagged `op_parameters` responses for an integration of a standalone notebook with Dagster. In the load stage dictionary of parameters from this cell is trasformed to Dagstermill format and passed to a function `define_dagstermill_op` from dagstermill library to make parameters avalible in Dagster Launchpad to edit run configuration in the launge stage.
 
@@ -69,7 +69,7 @@ Configure op in Dagster Launchpad:
 <img width="808" alt="simple_pipeline" src="https://user-images.githubusercontent.com/1010096/232597525-36053177-5b58-4aa9-8668-6912c7c63036.png">
 
 
-### A cell with the parameters tag
+### The 2th cell cell with the parameters tag
 
 The `parameters` cell responses for setting a notebook run configuration.
 The function `get_context` sets default values from config_schema in cell `op_parameters` to `context`.
@@ -87,7 +87,7 @@ If a notebook is run by Dagster as an Op then it replace the `parameter` cell wi
 <img width="1180" alt="out_nb_2" src="https://user-images.githubusercontent.com/1010096/232603465-41f3f647-4898-439f-95de-f00af1ba8da8.png">
 
 
-### A cell with a notebook data catalog initialization
+### The 3th cell with a notebook data catalog initialization
 
 A name of a path variable must be unique for each notebook namespace where the variable is used, thus a name of path variable could be shorter than the corresponding catalog path.
 
@@ -100,9 +100,9 @@ For each output from the output list method of `op.get_catalog()` generate catal
 <img width="951" alt="Initialize_catalog_outs" src="https://user-images.githubusercontent.com/1010096/232607728-c01acde4-bbbd-4bab-9cb6-25ab111fe172.png">
 
 
-### A cell responsible for outs passing to the next step
+### The 4th cell responsible for outs passing to the next step
 
-In the last 4th cell we inform of next steps of a pipeline where produced data are stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. We can copy strings from the cell output and paste them to `NbOp` declarations in the cells `op_parametrs` of the next notebooks in a pipeline.
+In the 4th cell we inform of next steps of a pipeline where produced data are stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. We can copy strings from the cell output and paste them to `NbOp` declarations in the cells `op_parametrs` of the next notebooks in a pipeline.
 
 Join a `ins` dictionary from `NbOp` and paths variables from the cell `parameters` passed to `NbOp` by passing variable `locals_=locals()` 
 
@@ -114,7 +114,9 @@ op.pass_outs_to_next_step()
 <img width="1758" alt="copy_passte_ins_variables" src="https://user-images.githubusercontent.com/1010096/232604788-42a54dba-f098-47f5-ab5d-a8fbf90e0197.png">
 
 
-## Dagster pipleline code
+## Define a Dagster job
+
+A function `define_job` automate a Dagster job definition.
 
 ```python
 # dag.py
