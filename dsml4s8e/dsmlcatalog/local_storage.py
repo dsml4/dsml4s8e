@@ -1,19 +1,20 @@
 from dsml4s8e import storage_catalog as sc
-from dsml4s8e.nb_data_keys import DataKeys
+from dsml4s8e.data_catalog import DataCatalogPaths
 from typing import List, Dict
 
 
-def _data_key2url(
-        key: str,
+def _catalog_path2storage_path(
+        catalog_path: str,
         run_id: str,
         prefix: str
         ) -> str:
     """
-    format of data_key: <pipeline>.<component>.<notebook>.<name_data_opj>
+    format of catalog_path: <pipeline>.<component>.<notebook>.<name_data_opj>
     cdlc_stage is a stage of component development life cycle: dev, test, ops
-    url: <prefix>/<pipeline>/<component>/<notebook>/<name_data_opj>
+    return a storage path
+    format of a storagr path: <prefix>/<pipeline>/<component>/<notebook>/<name_data_opj>
     """
-    p, c, nb, e = key.split('.')
+    p, c, nb, e = catalog_path.split('.')
     return f'{prefix}/{p}/{c}/{run_id}/{nb}/{e}'
 
 
@@ -36,14 +37,14 @@ class LoacalStorageCatalog(sc.StorageCatalogABC):
     def is_valid(self) -> bool:
         return True
 
-    def get_outs_data_urls(self, data_kyes: DataKeys) -> Dict[str, str]:
+    def get_outs_data_paths(self, catalog: DataCatalogPaths) -> Dict[str, str]:
         return dict(
                 [(
                     k,
-                    _data_key2url(
+                    _catalog_path2storage_path(
                         k,
                         self.run_id,
                         self.url_prefix
                         )
-                 ) for k in data_kyes.keys]
+                 ) for k in catalog.paths]
             )

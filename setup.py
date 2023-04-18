@@ -12,8 +12,7 @@ setup(
     packages=['dsml4s8e', 'dsml4s8e.dsmlcatalog', 'dsml4s8e.storage_rw'],
     install_requires=['dagster',
                       'dagstermill',
-                      'dagit',
-                      'ipynbname'
+                      'dagit'
                       ],
 
     classifiers=[

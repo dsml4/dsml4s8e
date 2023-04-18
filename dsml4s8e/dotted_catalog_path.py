@@ -9,17 +9,17 @@ def _reduce_leafs(
     """
     path_leaf_dict:
     {
-     'pip1.comp1.nb1.entity1': 'url_entity1',
-     'pip1.comp1.nb2.entity2': 'url_entity2',
-     'pip2.comp2.nb2.entity2': 'url_entity2',
-     'pip2.comp2.nb2.entity3': 'url_entity3'
+     'pip1.comp1.nb1.entity1': 'path_entity1',
+     'pip1.comp1.nb2.entity2': 'path_entity2',
+     'pip2.comp2.nb2.entity2': 'path_entity2',
+     'pip2.comp2.nb2.entity3': 'path_entity3'
      }
      output dict:
      defaultdict(list,
-            {'pip1.comp1.nb1': [('entity1', 'url_entity1')],
-             'pip1.comp1.nb2': [('entity2', 'url_entity2')],
-             'pip2.comp2.nb2': [('entity2', 'url_entity2'),
-                                ('entity3', 'url_entity3')]
+            {'pip1.comp1.nb1': [('entity1', 'path_entity1')],
+             'pip1.comp1.nb2': [('entity2', 'path_entity2')],
+             'pip2.comp2.nb2': [('entity2', 'path_entity2'),
+                                ('entity3', 'path_entity3')]
             })
     """
     d = defaultdict(list)
@@ -34,7 +34,7 @@ def _camelize(name: str) -> str:
     return name[0].capitalize() + name[1:]
 
 
-class_urls_name = 'ResourceUrls'
+class_data_path = 'DataPath'
 
 
 def _pack_leafs_list_to_obj(
@@ -43,13 +43,13 @@ def _pack_leafs_list_to_obj(
     """
     In input dict the leaves at the end of the branch stores in a list.
     in output dict the leaves are packed to object.
-    d_in:  {'pip1.comp1.nb1': [('entity1', 'url_entity1')]}
-    d_out: {'pip1.comp1.nb1': Pip1Comp1Nb1(entity1='url_entity1')}
+    d_in:  {'pip1.comp1.nb1': [('entity1', 'path_entity1')]}
+    d_out: {'pip1.comp1.nb1': Pip1Comp1Nb1(entity1='path_entity1')}
     """
     d_out = {}
     for k in d_in:
         if k == '':
-            cname = class_urls_name
+            cname = class_data_path
         else:
             path = k.split('.')
             cname = ''.join([_camelize(p) for p in path])
@@ -66,11 +66,11 @@ def _pack_leafs_list_to_obj(
     return d_out
 
 
-def do_dotted_urls_names(path_leaf_dict: dict[str: str]) -> object:
+def do_dotted_paths(path_leaf_dict: dict[str: str]) -> object:
     if not path_leaf_dict:
         return None
     path_leaf_obj = path_leaf_dict
-    while type(path_leaf_obj).__name__ != class_urls_name:
+    while type(path_leaf_obj).__name__ != class_data_path:
         path_leaf_obj = _pack_leafs_list_to_obj(
             _reduce_leafs(path_leaf_obj))
     return path_leaf_obj
