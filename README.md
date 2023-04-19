@@ -72,14 +72,14 @@ Configure op in Dagster Launchpad:
 
 ### Cell 2: Op context initialization
 
-The `parameters` cell responses for setting a notebook run configuration.
-A method `get_context` passes default values from config_schema in cell `op_parameters` to `context`.
+Define variabel with 'contex' name in a cell wiht the tag `parametrs`.
 
+A method `get_context` passes default values from config_schema in cell `op_parameters` to `context` variable.
 ```python
 context = op.get_context()
 ```
 
-If a notebook is executed by Dagster as an Op then it replaces the `parameter` cell with the `injected-parameters` cell, thus the variable `context` used in a notebook body when it run in standalone mode as well as Dagster Op.
+Now, if a notebook is executed by Dagster as an Op then it is replaced the parameters cell with the injected-parameters cell. Thus, the variable context can be used in the notebook body when the notebook  is executed in standalone mode and when the notebook is executed as Dagster Op.
 
 To be clear, let's look at one of the notebooks executed by Dagster:
 
