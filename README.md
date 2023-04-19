@@ -81,7 +81,7 @@ context = op.get_context()
 
 If a notebook is executed by Dagster as an Op then it replaces the `parameter` cell with the `injected-parameters` cell, thus the variable `context` used in a notebook body when it run in standalone mode as well as Dagster Op.
 
-To be clear, let's look at one of the notebooks executed by Dagster.
+To be clear, let's look at one of the notebooks executed by Dagster:
 
 <img width="999" alt="runs" src="https://user-images.githubusercontent.com/1010096/232601657-a8e3788a-96a8-4043-a14d-77306f7318f4.png">
 
@@ -107,14 +107,13 @@ For each output from the output list method of `op.get_catalog()` generate catal
 
 ### Cell 4: passing notebook outputs to next pipeline steps
 
-In the 4th cell we inform of next steps of a pipeline where produced data are stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. We can copy strings from the cell output and paste them to `NbOp` declarations in the cells `op_parametrs` of the next notebooks in a pipeline.
-
-Join a `ins` dictionary from `NbOp` and paths variables from the cell `parameters` passed to `NbOp` by passing variable `locals_=locals()` 
-
+In the 4th cell we inform of next steps of a pipeline where produced data are stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. 
 ```python
 op.pass_outs_to_next_step()
 
 ```
+Format of output message returning by `pass_outs_to_next_step()` allow as to copy strings from the cell output and paste them to `NbOp` declarations in the cells `op_parametrs` of the pipeline next steps notebooks.
+Look at the illustration below:
 
 <img width="1758" alt="copy_passte_ins_variables" src="https://user-images.githubusercontent.com/1010096/232604788-42a54dba-f098-47f5-ab5d-a8fbf90e0197.png">
 
