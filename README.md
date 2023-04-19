@@ -9,7 +9,7 @@
 
 Dsml4s8e designed to support the following workflow:
  1. Define a project structure for your pipeline and a structure of the pipeline data catalog, see about `StorageCatalogABC`
- 2. Develop **standalone** Jupyter notebooks with **clear interface**, see specification below
+ 2. Develop **standalone** Jupyter notebooks with **clear interface**, see the specification below
  3. Build a **pipeline** and deloy in vary environments(experimental/test/prod) and on vary infrastructure
  4. Configure and execute the certain pipeline version many times in vary environments and on vary infrastructure 
 
@@ -47,17 +47,18 @@ Open Dagster in a browser: http://localhost:3000/
 
 ## The standalone notebook specification
 
-A standalone notebook is a main building block in our pipelines building flow.
+A standalone notebook is a main building block in our pipelines development flow.
 
-To do notebooks capable to be joined into a dagster pipeline we need to add **4** cells to a notebook. Next, we will discuss what concerns are addressed each of the cells and what library classes are responsible for each one.
+To transform a standalone notebook to  Dagster Op(a pipeline step) we need to add **4** specific cells to the notebook. Next, we will discuss what concerns are addressed each of the cells and what library classes are responsible for each one.
 
 
 <img width="945" alt="notebook_4_cell_specification" src="https://user-images.githubusercontent.com/1010096/232596564-99a1108d-cbcc-4ded-84fb-ba4068f1b24f.png">
 
 
-### The 1th cell with the op_parameters tag
+### Cell 1: Op parameters defenition
 
-A cell tagged `op_parameters` responses for an integration of a standalone notebook with Dagster. In the load stage dictionary of parameters from this cell is trasformed to Dagstermill format and passed to a function `define_dagstermill_op` from dagstermill library to make parameters avalible in Dagster Launchpad to edit run configuration in the launge stage.
+In a cell with the tag `op_parameters` defines parameters which will be transformed and passed to [define_dagstermill_op](https://docs.dagster.io/integrations/dagstermill/reference#results-and-custom-materializations) on a job definition stage. 
+On the Dagster job definition stage this cell will be called and parametrs needed to define Op will be passed from the cell 'op' variabel to the function `define_dagstermill_op` from the dagstermill library. Then, these parameters will be avalible in Dagster Launchpad to edit run configuration in the launge stage.
 
 A definition of a Dagster op in a standalone notebook in JupyterLab:
 
@@ -69,10 +70,10 @@ Configure op in Dagster Launchpad:
 <img width="808" alt="simple_pipeline" src="https://user-images.githubusercontent.com/1010096/232597525-36053177-5b58-4aa9-8668-6912c7c63036.png">
 
 
-### The 2th cell cell with the parameters tag
+### Cell 2: Op context initialization
 
 The `parameters` cell responses for setting a notebook run configuration.
-The function `get_context` sets default values from config_schema in cell `op_parameters` to `context`.
+A method `get_context` passes default values from config_schema in cell `op_parameters` to `context`.
 
 ```python
 context = op.get_context()
@@ -80,14 +81,18 @@ context = op.get_context()
 
 If a notebook is executed by Dagster as an Op then it replaces the `parameter` cell with the `injected-parameters` cell, thus the variable `context` used in a notebook body when it run in standalone mode as well as Dagster Op.
 
+To be clear, let's look at one of the notebooks executed by Dagster.
+
 <img width="999" alt="runs" src="https://user-images.githubusercontent.com/1010096/232601657-a8e3788a-96a8-4043-a14d-77306f7318f4.png">
 
 <img width="1001" alt="open_path" src="https://user-images.githubusercontent.com/1010096/232603425-b6db4e71-893d-4633-8713-f1feaf96ecbb.png">
 
+You can notice that the injected-parameters cell in your output notebook defines a variable called context.
+
 <img width="1180" alt="out_nb_2" src="https://user-images.githubusercontent.com/1010096/232603465-41f3f647-4898-439f-95de-f00af1ba8da8.png">
 
 
-### The 3th cell with a notebook data catalog initialization
+### Cell 3: data catalog initialization
 
 A name of a path variable must be unique for each notebook namespace where the variable is used, thus a name of path variable could be shorter than the corresponding catalog path.
 
@@ -100,7 +105,7 @@ For each output from the output list method of `op.get_catalog()` generate catal
 <img width="951" alt="Initialize_catalog_outs" src="https://user-images.githubusercontent.com/1010096/232607728-c01acde4-bbbd-4bab-9cb6-25ab111fe172.png">
 
 
-### The 4th cell responsible for outs passing to the next step
+### Cell 4: passing notebook outputs to next pipeline steps
 
 In the 4th cell we inform of next steps of a pipeline where produced data are stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. We can copy strings from the cell output and paste them to `NbOp` declarations in the cells `op_parametrs` of the next notebooks in a pipeline.
 
@@ -114,8 +119,9 @@ op.pass_outs_to_next_step()
 <img width="1758" alt="copy_passte_ins_variables" src="https://user-images.githubusercontent.com/1010096/232604788-42a54dba-f098-47f5-ab5d-a8fbf90e0197.png">
 
 
-## Define a Dagster job
+## Dagster job definition step
 
+A job is a set of notebooks arranged into a DAG.
 A function `define_job` automate a Dagster job definition.
 
 ```python
