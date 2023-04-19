@@ -3,19 +3,19 @@
 **D**ata **S**cience / **ML** flow(**4**) **s**tandalon(**8**)**e**
 **Dsml4s8e** is a python library that aims to extend Dagster to: 
 
- 1. Simplify building of pipelines from **standalon** notebooks
+ 1. Simplify building of pipelines from **standalone** notebooks
  2. Standardize a structure of ML/DS pipeline projects to easy share and continuous improve them
  3. Manage pipelines data in a process of pipelines continuous improvement
 
 Dsml4s8e designed to support the following workflow:
  1. Define a project structure for your pipeline and a structure of the pipeline data catalog, see about `StorageCatalogABC`
- 2. Develop **standalon** Jupyter notebooks with **clear interface**, see specification below
+ 2. Develop **standalone** Jupyter notebooks with **clear interface**, see specification below
  3. Build a **pipeline** and deloy in vary environments(experimental/test/prod) and on vary infrastructure
- 4. Configure and run the certaine version of pipeline many times in vary environments and on vary infrastructure 
+ 4. Configure and execute the certain pipeline version many times in vary environments and on vary infrastructure 
 
 Dsml4s8e proper for build a cloud agnostic DSML platform.
 
-You can play with the demo pipeline skelet project:
+You can play with a demo pipeline skelet project:
 
 https://github.com/dsml4/pipeline_skelet
 
@@ -78,7 +78,7 @@ The function `get_context` sets default values from config_schema in cell `op_pa
 context = op.get_context()
 ```
 
-If a notebook is run by Dagster as an Op then it replace the `parameter` cell with the `injected-parameters` cell, thus the variable `context` used in a notebook body when it run in standalone mode as well as Dagster Op.
+If a notebook is executed by Dagster as an Op then it replace the `parameter` cell with the `injected-parameters` cell, thus the variable `context` used in a notebook body when it run in standalone mode as well as Dagster Op.
 
 <img width="999" alt="runs" src="https://user-images.githubusercontent.com/1010096/232601657-a8e3788a-96a8-4043-a14d-77306f7318f4.png">
 
@@ -92,7 +92,7 @@ If a notebook is run by Dagster as an Op then it replace the `parameter` cell wi
 A name of a path variable must be unique for each notebook namespace where the variable is used, thus a name of path variable could be shorter than the corresponding catalog path.
 
 
-For each output method of `op.get_catalog()` generate catalog paths and this method uses the catalog object to create paths in the specific storage(the file system) by catalog paths.
+For each of outputs a method `op.get_catalog()` creates catalog paths. The metod `op.get_catalog()` call the catalog paths to create paths in the specific storage(the file system) by catalog paths.
 LocalStorage derived from `StorageCatalogABC`, this class responsible for a structure of a data catalog in a certain storage, but a catalog structure is fully customizable using `StorageCatalogABC`.
 For each output from the output list method of `op.get_catalog()` generate catalog paths and this method uses the catalog object to create paths in the specific storage(the file system) by catalog paths.
 
