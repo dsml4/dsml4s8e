@@ -57,7 +57,7 @@ To transform a standalone notebook to  Dagster Op(a pipeline step) we need to ad
 
 ### Cell 1: Op parameters defenition
 
-In a cell with the tag `op_parameters` defines parameters which will be transformed and passed to [define_dagstermill_op](https://docs.dagster.io/integrations/dagstermill/reference#results-and-custom-materializations) on a job definition stage. 
+In a cell with the tag `op_parameters` defines parameters which will be transformed and passed to [define_dagstermill_op](https://docs.dagster.io/integrations/dagstermill/reference#results-and-custom-materializations) as arguments on a job definition stage. 
 On the Dagster job definition stage this cell will be called and parametrs needed to define Op will be passed from the cell 'op' variabel to the function `define_dagstermill_op` from the dagstermill library. Then, these parameters will be avalible in Dagster Launchpad to edit run configuration in the launge stage.
 
 A definition of a Dagster op in a standalone notebook in JupyterLab:
@@ -94,12 +94,57 @@ You can notice that the injected-parameters cell in your output notebook defines
 
 ### Cell 3: data catalog initialization
 
+A data catalog is a set of paths. A catalog path is a unique name of a data entity in pipelines namespaces. Catalog paths are used for linking ops into pipeline.
+'''python
+# Cell 1 of nb_2 
+op = NbOp(
+    config_schema={
+        "b": Field(
+            int,
+            description='this is the paramentr description',
+            default_value=20
+            )
+    },
+    ins={
+         'simple_pipeline.data_load.nb_0.data0':'path_nb_0_data0',
+         'simple_pipeline.data_load.nb_1.data1':'path_nb_1_data1',
+         'simple_pipeline.data_load.nb_1.data3':'path_nb_1_data3',
+         },
+    outs=['data2']
+)
+'''
+
+In this code block, we use the `ins` argumet to link outputs produced by nb_0 and nb_1 with inputs of nb_2. 
+The keys if the `ins` dict are catalog paths. And the values are names of paths variables which are used in a notebook.
+Catalog paths and paths variables names are generated automatically by the `outs` list, the class `NbOp` is responsible for generating.
+
 A name of a path variable must be unique for each notebook namespace where the variable is used, thus a name of path variable could be shorter than the corresponding catalog path.
 
+The method `get_catalog()` use 'DagsterStorageCatalog' derived from `StorageCatalogABC` to create paths in a file system (storage) catalog. Creating of file system paths for each the data entity name in `outs` list must be implemented in the method `get_outs_data_paths`.
 
-For each of outputs a method `op.get_catalog()` creates catalog paths. The metod `op.get_catalog()` call the catalog paths to create paths in the specific storage(the file system) by catalog paths.
-LocalStorage derived from `StorageCatalogABC`, this class responsible for a structure of a data catalog in a certain storage, but a catalog structure is fully customizable using `StorageCatalogABC`.
-For each output from the output list method of `op.get_catalog()` generate catalog paths and this method uses the catalog object to create paths in the specific storage(the file system) by catalog paths.
+'''python
+class StorageCatalogABC(ABC):
+
+    @abstractmethod
+    def __init__(self, runid):
+        self.runid = runid
+
+    @abstractmethod
+    def is_valid(self) -> bool:
+        ...
+
+    @abstractmethod
+    def get_outs_data_paths(
+        self,
+        catalog: DataCatalogPaths
+    ) -> Dict[str, str]:
+        """
+        A map of catalog paths to storage paths
+        """
+        ...
+'''
+
+A catalog structure in file system is fully customizable using `StorageCatalogABC`.
 
 
 <img width="951" alt="Initialize_catalog_outs" src="https://user-images.githubusercontent.com/1010096/232607728-c01acde4-bbbd-4bab-9cb6-25ab111fe172.png">
@@ -107,7 +152,7 @@ For each output from the output list method of `op.get_catalog()` generate catal
 
 ### Cell 4: passing notebook outputs to next pipeline steps
 
-In the 4th cell we inform of next steps of a pipeline where produced data are stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. 
+In the last cell we inform the next steps of the pipeline where data produced by the current notebook are stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. 
 ```python
 op.pass_outs_to_next_step()
 
