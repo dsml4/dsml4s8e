@@ -78,7 +78,7 @@ The function `get_context` sets default values from config_schema in cell `op_pa
 context = op.get_context()
 ```
 
-If a notebook is executed by Dagster as an Op then it replace the `parameter` cell with the `injected-parameters` cell, thus the variable `context` used in a notebook body when it run in standalone mode as well as Dagster Op.
+If a notebook is executed by Dagster as an Op then it replaces the `parameter` cell with the `injected-parameters` cell, thus the variable `context` used in a notebook body when it run in standalone mode as well as Dagster Op.
 
 <img width="999" alt="runs" src="https://user-images.githubusercontent.com/1010096/232601657-a8e3788a-96a8-4043-a14d-77306f7318f4.png">
 
