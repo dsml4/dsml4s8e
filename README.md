@@ -95,8 +95,7 @@ You can notice that the injected-parameters cell in your output notebook defines
 ### Cell 3: data catalog initialization
 
 A data catalog is a set of paths. A catalog path is a unique name of a data entity in pipelines namespaces. Catalog paths are used for linking ops into pipeline.
-'''python
-# Cell 1 of nb_2 
+```python
 op = NbOp(
     config_schema={
         "b": Field(
@@ -112,7 +111,7 @@ op = NbOp(
          },
     outs=['data2']
 )
-'''
+```
 
 In this code block, we use the `ins` argumet to link outputs produced by nb_0 and nb_1 with inputs of nb_2. 
 The keys if the `ins` dict are catalog paths. And the values are names of paths variables which are used in a notebook.
@@ -122,7 +121,7 @@ A name of a path variable must be unique for each notebook namespace where the v
 
 The method `get_catalog()` use 'DagsterStorageCatalog' derived from `StorageCatalogABC` to create paths in a file system (storage) catalog. Creating of file system paths for each the data entity name in `outs` list must be implemented in the method `get_outs_data_paths`.
 
-'''python
+```python
 class StorageCatalogABC(ABC):
 
     @abstractmethod
@@ -142,7 +141,7 @@ class StorageCatalogABC(ABC):
         A map of catalog paths to storage paths
         """
         ...
-'''
+```
 
 A catalog structure in file system is fully customizable using `StorageCatalogABC`.
 
