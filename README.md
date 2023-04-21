@@ -85,7 +85,7 @@ To be clear, let's look at one of the notebooks executed by Dagster:
 
 <img width="1001" alt="open_path" src="https://user-images.githubusercontent.com/1010096/232603425-b6db4e71-893d-4633-8713-f1feaf96ecbb.png">
 
-You can notice that the injected-parameters cell in your output notebook defines a variable called context.
+Notice that the injected-parameters cell in your output notebook defines a variable called context.
 
 <img width="1180" alt="out_nb_2" src="https://user-images.githubusercontent.com/1010096/232603465-41f3f647-4898-439f-95de-f00af1ba8da8.png">
 
