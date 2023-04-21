@@ -8,16 +8,14 @@
  3. Manage pipelines data in a process of pipelines continuous improvement
 
 Dsml4s8e designed to support the following workflow:
- 1. Define a project structure for your pipeline and a structure of the pipeline data catalog, see about `StorageCatalogABC`
- 2. Develop **standalone** Jupyter notebooks with **clear interface**, see the specification below
- 3. Build a **pipeline** and deloy in vary environments(experimental/test/prod) and on vary infrastructure
- 4. Configure and execute the certain pipeline version many times in vary environments and on vary infrastructure 
+ 1. Define a project structure and a structure of the pipeline data catalog  for your pipeline by using class `Storage Catalog ABC`.
+ 2. Develop **standalone** Jupyter notebooks corresponding specification requirements.
+ 3. Difine a **pipeline** -- a sequence of notebooks and deloy the pipelien in vary environments(experimental/test/prod).
+ 4. Execute pipelines many times with different configurations in vary environments and on vary infrastructure..
 
 Dsml4s8e proper for build a cloud agnostic DSML platform.
 
-You can play with a demo pipeline skelet project:
-
-https://github.com/dsml4/pipeline_skelet
+You can play with a demo pipeline [skeleton project](https://github.com/dsml4/pipeline_skelet).
 
 ## Installation of local dev container
 ```bash
@@ -151,7 +149,7 @@ A catalog structure in file system is fully customizable using `StorageCatalogAB
 
 ### Cell 4: passing notebook outputs to next pipeline steps
 
-In the last cell we inform the next steps of the pipeline where data produced by the current notebook are stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. 
+In the last cell we inform next steps of the pipeline where data produced by the current notebook is stored. Now we can link this notebook(step) with the next notebooks representing pipeline steps. To do this we need to declare this notebook outputs as inputs for the next netbooks. 
 ```python
 op.pass_outs_to_next_step()
 
