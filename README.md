@@ -1,6 +1,6 @@
 
 # Dsml4s8e
-**D**ata **S**cience / **ML** flow(**4**) **s**tandalon(**8**)**e**
+
 Dsml4s8e is a Python library that extends Dagster to help manage the ML workflow around Jupyter notebooks development.
 
 **Dsml4s8e** addresses issues: 
