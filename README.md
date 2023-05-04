@@ -34,7 +34,7 @@ docker build -t dsml4s8e .
 # Go back into the work directory to a correct using pwd command inside the next docker run instruction
 cd ../../../
 # Create and run a container staying in the work directory.
-docker run --rm --name my_dag -p 3000:3000 -p 8888:8888 -v $(pwd):/home/jovyan/work -e DAGSTER_HOME=/home/jovyan/work/daghome dsml4s8e bash work/dsml4s8e/setup_pipeline.sh
+docker run --rm --name my_dag -p 3000:3000 -p 8888:8888 -v $(pwd):/home/jovyan/work -e DAGSTER_HOME=/home/jovyan/work/daghome dsml4s8e bash setup_pipeline.sh
 ```
 
 Open JupyterLab in a browser: http://localhost:8888/lab
