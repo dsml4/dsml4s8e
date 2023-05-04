@@ -16,9 +16,10 @@ RUN  mamba install --name base pycodestyle gitpython twine -y && \
      fix-permissions "${CONDA_DIR}" && \
      fix-permissions "/home/${NB_USER}"
 
-RUN pip install -U dagster dagstermill dagit && \
-    pip install -U ipynbname && \
-    pip install -U pytest 
+COPY  requirements.txt requirements.txt
+
+RUN pip install -U -r requirements.txt
+COPY  setup_pipeline.sh setup_pipeline.sh
 
 USER ${NB_UID}
 
