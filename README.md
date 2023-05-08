@@ -15,6 +15,45 @@ Dsml4s8e designed to support the following workflow:
  3. Difine a **pipeline** -- a sequence of notebooks and deloy the pipelien in vary environments(experimental/test/prod)
  4. Execute pipelines many times with different configurations in vary environments and on vary infrastructure
 
+
+A job is a set of notebooks arranged into a DAG.
+Dsml4s8e simplify jobs definition based on a set of Jupyter notebooks.
+
+```python
+# dag.py
+
+from dsml4s8e.define_job import define_job
+from dagstermill import local_output_notebook_io_manager
+from dagster import job
+
+from pathlib import Path
+
+
+@job(
+    name='simple_pipeline',
+    tags={"cdlc_stage": "dev"},
+    resource_defs={
+        "output_notebook_io_manager": local_output_notebook_io_manager,
+    }
+)
+def dagstermill_pipeline():
+    module_path = Path(__file__)
+    define_job(
+        root_path=module_path.parent.parent,
+        nbs_sequence=[
+            "data_load/nb_0.ipynb",
+            "data_load/nb_1.ipynb",
+            "data_load/nb_2.ipynb"
+        ]
+    )
+
+
+```
+In this code block, we use  `define_job` to automate a [dagstermil](https://docs.dagster.io/integrations/dagstermill/reference#notebooks-as-ops) job definition:
+As a result, a dagster pipeline will be built from standalone notebooks:
+  
+![Simple Pipeline](https://user-images.githubusercontent.com/1010096/232598898-b536ec12-26da-4693-a4e9-ba15858164de.svg)
+
 Dsml4s8e proper for build a cloud agnostic DSML platform.
 
 You can play with a demo pipeline [skeleton project](https://github.com/dsml4/pipeline_skelet).
@@ -160,44 +199,3 @@ Format of output message returning by `pass_outs_to_next_step()` allow as to cop
 Look at the illustration below:
 
 <img width="1758" alt="copy_passte_ins_variables" src="https://user-images.githubusercontent.com/1010096/232604788-42a54dba-f098-47f5-ab5d-a8fbf90e0197.png">
-
-
-## Dagster job definition step
-
-A job is a set of notebooks arranged into a DAG.
-A function `define_job` automate a Dagster job definition.
-
-```python
-# dag.py
-
-from dsml4s8e.define_job import define_job
-from dagstermill import local_output_notebook_io_manager
-from dagster import job
-
-from pathlib import Path
-
-
-@job(
-    name='simple_pipeline',
-    tags={"cdlc_stage": "dev"},
-    resource_defs={
-        "output_notebook_io_manager": local_output_notebook_io_manager,
-    }
-)
-def dagstermill_pipeline():
-    module_path = Path(__file__)
-    define_job(
-        root_path=module_path.parent.parent,
-        nbs_sequence=[
-            "data_load/nb_0.ipynb",
-            "data_load/nb_1.ipynb",
-            "data_load/nb_2.ipynb"
-        ]
-    )
-
-
-```
-
-As a result, a dagster pipeline will be built from standalone notebooks:
-  
-![Simple Pipeline](https://user-images.githubusercontent.com/1010096/232598898-b536ec12-26da-4693-a4e9-ba15858164de.svg)
