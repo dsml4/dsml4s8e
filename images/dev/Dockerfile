@@ -16,6 +16,8 @@ RUN  mamba install --name base poetry pycodestyle gitpython twine -y && \
      fix-permissions "${CONDA_DIR}" && \
      fix-permissions "/home/${NB_USER}"
 
+RUN pip install black jupyter-black
+
 COPY  requirements.txt requirements.txt
 
 RUN pip install -U -r requirements.txt
