@@ -1,6 +1,6 @@
 cd /home/jovyan/work/dsml4s8e
-python setup.py sdist
-pip install -U .
+poetry build
+pip install --editable .
 cd /home/jovyan/work/dsml4s8e/examples/simple_pipeline/dag
 bash run.sh&
 cd
