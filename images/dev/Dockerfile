@@ -11,10 +11,12 @@ RUN apt-get update --yes && \
 USER ${NB_UID}
 
 # Install dsml4s8e libs
-RUN  mamba install --name base pycodestyle gitpython twine -y && \
+RUN  mamba install --name base poetry pycodestyle gitpython twine -y && \
      mamba clean --all -f -y && \
      fix-permissions "${CONDA_DIR}" && \
      fix-permissions "/home/${NB_USER}"
+
+RUN pip install black jupyter-black
 
 COPY  requirements.txt requirements.txt
 
