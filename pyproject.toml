@@ -7,10 +7,9 @@ license = "Apache License 2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-dagster = "^1.3.8"
-dagstermill = "^0.19.8"
-dagit = "^1.3.8"
+python = "^3.11"
+dagster = "^1.4"
+dagstermill = "^0.20"
 
 
 [build-system]
