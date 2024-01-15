@@ -13,6 +13,16 @@
             "justMyCode": false,
             "cwd": "/home/jovyan/work/dev/dsml4s8e/examples/simple_pipeline/dag/",
             "args": ["nb_1.yaml"]
+        },
+
+        {
+            "name": "Python: Debug Tests",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "purpose": ["debug-test"],
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }
