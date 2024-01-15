@@ -7,9 +7,6 @@ license = "Apache License 2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
-dagster = "^1.4"
-dagstermill = "^0.20"
 
 
 [build-system]
