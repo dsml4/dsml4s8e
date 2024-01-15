@@ -1,4 +1,4 @@
-FROM  jupyter/scipy-notebook:latest
+FROM  quay.io/jupyter/scipy-notebook:latest
 LABEL maintainer="Motuzov <motuzov@gmail.com>"
 
 USER root
