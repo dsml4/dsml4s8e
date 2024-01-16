@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dsml4s8e"
-version = "0.1.4"
+version = "0.1.5"
 description = "lib to build dagster pipelines from standalone notebooks"
 authors = ["Aleksander Motuzov <motuzov@gmail.com>"]
 license = "Apache License 2.0"
