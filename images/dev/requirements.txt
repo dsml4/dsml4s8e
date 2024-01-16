@@ -1,6 +1,6 @@
-dagster
-dagstermill
-dagit
 pytest
 black 
 jupyter-black
+dagster
+dagster-webserver
+dagstermill
