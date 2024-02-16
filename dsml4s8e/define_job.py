@@ -20,10 +20,12 @@ class JobOuts:
     def add_op_outs(
             self,
             invoked_op: OpDefinition,
-            result):
-        if not result:
+            results):
+
+        try:
+            fn_result = results[:-1]
+        except:
             return
-        fn_result = result[:-1]
         self.fn_results[invoked_op.name] = fn_result
         for i, p_name in enumerate(invoked_op.outs.keys()):
             self.fn_results_index[p_name] = (invoked_op.name, i)
@@ -57,10 +59,7 @@ def define_job(root_path: Path,
             )
         fn_ins = job_outs.get_fn_ins(op_def.positional_inputs)
         results = op_def(*fn_ins)
-        node_name = getattr(results, 'node_name', None)
-        if node_name:
-            continue
         job_outs.add_op_outs(
             op_def,
-            results[:-1]
+            results
         )
