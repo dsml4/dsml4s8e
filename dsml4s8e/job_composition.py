@@ -57,7 +57,7 @@ class NbsJobComposition:
 
         for nb_params in self._nbs_params_seq:
             ops_configs[nb_params["name"]] = type(
-                f'Op{nb_params["name"]}Cfg',
+                f"Op{nb_params['name']}Cfg",
                 (Config,),
                 {"__annotations__": nb_params["config_schema"]},
             )
@@ -73,3 +73,6 @@ class NbsJobComposition:
             op_ins = job_outs.get_op_ins_by_names(op_def.positional_inputs)
             nb_outpusts = op_def(*op_ins)
             job_outs.save_nb_outpusts(op_def, nb_outpusts)
+
+    def cfg_map(self, nb_name: str, **kvargs):
+        return {nb_name: self.ops_configs[nb_name](**kvargs)}

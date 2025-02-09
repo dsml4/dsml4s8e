@@ -33,11 +33,18 @@ nbs_job_composition = NbsJobComposition(
 
 @config_mapping
 def simplified_config(val: SimplifiedConfig) -> RunConfig:
+    # return RunConfig(
+    #     ops={
+    #         "nb_0": nbs_job_composition.ops_configs["nb_0"](a=val.a),
+    #         "nb_1": nbs_job_composition.ops_configs["nb_1"](a=val.a),
+    #         "nb_2": nbs_job_composition.ops_configs["nb_2"](b=val.b),
+    #     }
+    # )
     return RunConfig(
         ops={
-            "nb_0": nbs_job_composition.ops_configs["nb_0"](a=val.a),
-            "nb_1": nbs_job_composition.ops_configs["nb_1"](a=val.a),
-            "nb_2": nbs_job_composition.ops_configs["nb_2"](b=val.b),
+            **nbs_job_composition.cfg_map(nb_name="nb_0", a=val.a),
+            **nbs_job_composition.cfg_map(nb_name="nb_1", a=val.a),
+            **nbs_job_composition.cfg_map(nb_name="nb_2", b=val.b),
         }
     )
 
