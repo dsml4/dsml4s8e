@@ -18,10 +18,10 @@ class _JobInsOutsComposition:
     def save_nb_outpusts(
         self, op_def: OpDefinition, nb_outpusts: PendingNodeInvocation
     ):
-        try:
-            nb_outpusts = nb_outpusts[:-1]
-        except IndexError:
-            return
+        # the last output is a handler of an output notebook
+        # Papermill generates an output notebook for each input
+        # dsml4s8e don't use output notebooks as inputs of ops
+        nb_outpusts = nb_outpusts[:-1]
         self.op_outputs[op_def.name] = nb_outpusts
         for pos, out_key in enumerate(op_def.outs.keys()):
             self.op_outputs_pos[out_key] = (op_def.name, pos)
@@ -72,7 +72,11 @@ class NbsJobComposition:
             )
             op_ins = job_outs.get_op_ins_by_names(op_def.positional_inputs)
             nb_outpusts = op_def(*op_ins)
-            job_outs.save_nb_outpusts(op_def, nb_outpusts)
+            if "outs" in op_params:
+                job_outs.save_nb_outpusts(op_def, nb_outpusts)
+
+    def __call__(self):
+        self.do_compositioin(save_notebook_on_failure=True)
 
     def cfg_map(self, nb_name: str, **kvargs):
         return {nb_name: self.ops_configs[nb_name](**kvargs)}
