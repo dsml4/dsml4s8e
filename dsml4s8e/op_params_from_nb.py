@@ -65,4 +65,4 @@ def dagstermill_op_params_from_nb(nb_path: str):
     dsml_nb_tags = mandatory_tags.intersection(nb_tags)
     if dsml_nb_tags == mandatory_tags:
         return params
-    raise MissingTagsException(nb_path, mandatory_tags - dsml_nb_tags)
+    raise MissingTagsException(nb_path, sorted(mandatory_tags - dsml_nb_tags))

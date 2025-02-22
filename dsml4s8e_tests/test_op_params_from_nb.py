@@ -2,6 +2,7 @@ from dsml4s8e import op_params_from_nb
 from pathlib import Path
 from dagster import Field
 from dagster import Out, In
+from pytest import raises
 
 
 def test_op_params_from_nb():
@@ -28,10 +29,11 @@ def test_op_params_from_nb():
 def test_missing_nb_tags():
     test_dir = Path(__file__).parent
     nb_path = f"{test_dir}/notebooks/empty.ipynb"
-    try:
+    with raises(
+        op_params_from_nb.MissingTagsException,
+        match=r"op_parameters.*parameters",
+    ):
         _ = op_params_from_nb.dagstermill_op_params_from_nb(nb_path)
-    except op_params_from_nb.MissingTagsException as e:
-        assert e.tags == {"op_parameters", "parameters"}
 
 
 def test_nb_ins2dagster_ins():
