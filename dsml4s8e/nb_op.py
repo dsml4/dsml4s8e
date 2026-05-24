@@ -1,17 +1,25 @@
-from dsml4s8e import dotted_catalog_path, StorageCatalog, NotebookData, kye2pathvar_name
-
-import dagstermill
-from pathlib import Path
 from typing import Dict, Tuple
+from types import SimpleNamespace
 from functools import cached_property
-from dagster import Field
-from dataclasses import dataclass
+from dataclasses import dataclass, make_dataclass, asdict
+import copy
+
+import dagster as dg
+import dagstermill
+from dagstermill import _load_input_parameter, DagstermillExecutionContext
+from dagstermill.manager import MANAGER_FOR_NOTEBOOK_INSTANCE
 
 
-def op_name_from_nb_path(nb_path, level_from_root=2):
-    p = Path(nb_path)
-    level_from_root += 1
-    return ".".join(list(p.parts[-level_from_root:-1]) + [p.stem]), p.stem
+def nb_path():
+    import ipynbname
+
+    print(ipynbname.path())
+
+
+def make_paths(out_names, out_paths) -> dataclass:
+    return make_dataclass(
+        cls_name="StorageCatalog", fields=[(o, str) for o in out_names]
+    )(*out_paths)
 
 
 class MissedInsParameters(Exception):
@@ -36,137 +44,58 @@ class NbDataCatalog:
     outs: object
 
 
+def standalone_context(cfg: dg.Config) -> DagstermillExecutionContext:
+    return dagstermill.get_context(cfg)
+
+
 class NbOp:
-    _current_op_id = None
-    _current_nb_path = None
-    ops: Dict[str, dict] = {}
+    def _paths(self, outs: list[str], run_id: str):
+        root_path = f"s3://backet/path/{run_id}/"
+        return [root_path + out_name for out_name in outs]
 
-    @classmethod
-    def set_current_nb_path(cls, nb_path: str):
-        cls._current_nb_path = nb_path
-
-    @classmethod
-    def params(cls):
-        return cls.ops[cls._current_op_id].copy()
-
-    @classmethod
-    def _op_name_and_id_from_nb_path(
-        cls, nb_path: str, level_from_root: int
-    ) -> Tuple[str, str]:
-        """
-        retrun op_name, op_id
-        """
-        p = Path(nb_path)
-        level_from_root += 1
-        op_name = p.stem
-        op_id = ".".join(list(p.parts[-level_from_root:-1]) + [op_name])
-        return p.stem, op_id
+    current = None
 
     def __init__(
         self,
-        config_schema: Dict[str, Field] = None,
-        ins: Dict[str, dict] = None,
-        outs: Dict[str, dict] = None,
-        level_from_root=2,
+        config_schema: type[dg.Config] = None,
+        ins: list[str] = None,
+        outs: list[str] = None,
     ) -> None:
+        """
+        ins: [data1, data2] -> to catalog
+        outs: output name(variable store the path to)
+        """
         self._op_params = {}
-        self._level_from_root = level_from_root
         if config_schema:
             self._op_params["config_schema"] = config_schema
         if ins:
             self._op_params["ins"] = ins
         if outs:
             self._op_params["outs"] = outs
-        if self._current_nb_path:
-            # If the static method set_current_nb_path has been called outside.
-            # This code is executed to extract op parameters from a notebook.
-            # For more details look op_params_nb.dagstermill_op_params_from_nb
-            (self._op_params["name"], NbOp._current_op_id) = (
-                self._op_name_and_id_from_nb_path(
-                    nb_path=self._current_nb_path, level_from_root=level_from_root
-                )
-            )
-            NbOp.ops[NbOp._current_op_id] = self._op_params
+        NbOp.current = self
 
-    def _get_ins_data_paths(self, locals_: Dict[str, dict]) -> Dict[str, str]:
-        """
-        Create the data_paths dict with keys from ins and values from locals_
-        (join by data_path).
-        Variables with names from ins dict values must be in locals_
-        else the MissedInsParameters exсeption is raised:
-        'ins': {'data_path': 'nb_data1'} ->
-               {data_path: _locals['nb_data1']}.
-        Where locals_ is a Local symbol Table returning by
-        the Build-In Python function locals().
-        """
-        ins: Dict[str, dict] = self._op_params["ins"]
-        paths_dict = {k: locals_.get(k_alias, "") for k, k_alias in ins.items()}
-        empty_vals = [k for k, path in paths_dict.items() if not path]
-        if len(empty_vals) > 0:
-            raise MissedInsParameters(empty_vals, ins)
-        return paths_dict
-
-    # TODO: Rename make_catalog -> make_catalod (Method Injection)
-    # make_outs_data_paths -> make_outs_data_paths
-    def make_catalog(
-        self, locals_: Dict[str, dict], storage_catalog: StorageCatalog
-    ) -> NbDataCatalog:
-        """
-        This metod calls from notebook.
-        The method injection storage_catalog to create output storage paths by output data keys
-        locals_ is a Local symbol Table
-        returning by the Build-In Python function locals().
-        """
-        dagster_context = locals_["context"]
-        if "notebook_path" in dagster_context.op_def.tags:
-            # if a notebook is executed by dagstermill
-            nb_path = dagster_context.op_def.tags["notebook_path"]
-        else:
-            # if a notebook is executed by jupyter
-            nb_path = locals_["__session__"]
-
-        self.nb_name, self._id = self._op_name_and_id_from_nb_path(
-            nb_path=nb_path, level_from_root=self._level_from_root
-        )
-        op_params = self._op_params
-        self.nb_data_keys = NotebookData(
-            ins=op_params.get("ins", {}),
-            out_var_names=op_params.get("outs", []),
-            op_id=self._id,
-        )
-        _ins_dict = {}
-        self._outs_dict = {}
-        if "ins" in op_params:
-            _ins_dict = self._get_ins_data_paths(locals_)
-        if "outs" in op_params:
-            self._outs_dict = storage_catalog.make_outs_data_paths(
-                data_keys=self.nb_data_keys.outs,
-            )
-        return NbDataCatalog(
-            ins=dotted_catalog_path.do_dotted_paths(_ins_dict),
-            outs=dotted_catalog_path.do_dotted_paths(self._outs_dict),
-        )
+    @staticmethod
+    def get_curren_params() -> dict[str, dict]:
+        return copy.deepcopy(NbOp.current._op_params)
 
     def pass_outs_to_next_steps(self):
-        out_paths = []
+        for output_name, storage_path in asdict(self.outs).items():
+            dagstermill.yield_result(value=storage_path, output_name=output_name)
 
-        print(
-            "Strings below can be pasted in cells with tags 'parameters' of next notebooks.\n"
-        )
-        for dotted_path, storage_path in self._outs_dict.items():
-            path_varname = kye2pathvar_name(dotted_path)
-            out_paths.append((f"'{dotted_path}'", f"'{path_varname}'"))
-            print(f"{path_varname} = '{storage_path}'")
-            dagstermill.yield_result(storage_path, output_name=path_varname)
-        print("\nStrings below can be pasted in code of declaration of NbOp")
-        print("in cells with tags 'op_parameters' of next notebooks.\n")
-        for path in out_paths:
-            print(f"{path[0]}:{path[1]},")
+    def set_context(self, context: DagstermillExecutionContext):
+        self._context = context
+        if "ins" in self._op_params:
+            ins = self._op_params["ins"]
+            self.ins = make_paths(
+                ins, self._paths(outs=ins, run_id=self._context.run_id)
+            )
 
-    def get_context(self):
-        return dagstermill.get_context(op_config=self.config)
+        if "outs" in self._op_params:
+            outs = self._op_params["outs"]
+            self.outs = make_paths(
+                outs, self._paths(outs=outs, run_id=self._context.run_id)
+            )
 
-    @cached_property
-    def config(self):
-        config_schema: Dict[str, Field] = self._op_params["config_schema"]
-        return {k: v.default_value for k, v in config_schema.items()}
+        self.cfg = self._context.op_config
+        if isinstance(self._context.op_config, dict):
+            self.cfg = SimpleNamespace(self._context.op_config)

@@ -12,24 +12,24 @@ from dsml4s8e.op_params_from_nb import dagstermill_op_params_from_nb
 
 class _JobInsOutsComposition:
     def __init__(self):
-        self.op_outputs_pos = {}
+        self.op_output_name_pos: dict[str, tuple[str, int]] = {}
         self.op_outputs = {}
 
     def save_nb_outpusts(
         self, op_def: OpDefinition, nb_outpusts: PendingNodeInvocation
     ):
         # the last output is a handler of an output notebook
-        # Papermill generates an output notebook for each input
+        # Papermill generates an output notebook for each nb
         # dsml4s8e don't use output notebooks as inputs of ops
         nb_outpusts = nb_outpusts[:-1]
         self.op_outputs[op_def.name] = nb_outpusts
         for pos, out_key in enumerate(op_def.outs.keys()):
-            self.op_outputs_pos[out_key] = (op_def.name, pos)
+            self.op_output_name_pos[out_key] = (op_def.name, pos)
 
     def get_op_ins_by_names(self, op_positional_inputs: Sequence[str]):
         ins = []
         for in_key in op_positional_inputs:
-            op_name, pos = self.op_outputs_pos[in_key]
+            op_name, pos = self.op_output_name_pos[in_key]
             ins.append(self.op_outputs[op_name][pos])
         return ins
 
@@ -52,19 +52,17 @@ class NbsJobComposition:
         return self._job_metadata
 
     @cached_property
-    def ops_configs(self):
-        ops_configs = {}
-
-        for nb_params in self._nbs_params_seq:
-            ops_configs[nb_params["name"]] = type(
-                f"Op{nb_params['name']}Cfg",
-                (Config,),
-                {"__annotations__": nb_params["config_schema"]},
-            )
-        self._ops_configs = MappingProxyType(ops_configs)
-        return self._ops_configs
+    def op_config_cls(self):
+        return MappingProxyType(
+            {
+                nb_params["name"]: nb_params["config_schema"]
+                for nb_params in self._nbs_params_seq
+            }
+        )
 
     def do_compositioin(self, save_notebook_on_failure: bool = True):
+        # _core/definitions/composition.py
+        # function which is our DSL for constructing a dependency graph
         job_outs = _JobInsOutsComposition()
         for op_params in self._nbs_params_seq:
             op_def: OpDefinition = define_dagstermill_op(
@@ -78,5 +76,14 @@ class NbsJobComposition:
     def __call__(self):
         self.do_compositioin(save_notebook_on_failure=True)
 
-    def cfg_map(self, nb_name: str, **kvargs):
-        return {nb_name: self.ops_configs[nb_name](**kvargs)}
+    def make_config(self, nb_name: str, **kvargs):
+        nb_config = {
+            "nb_0": {"a": 1},
+            "nb_1": {"a": 1},
+            "nb_2": {"b": 2},
+        }
+        {
+            nb_name: self.op_config_cls[nb_name](**nb_config[nb_name])
+            for nb_name in nb_config
+        }
+        return {nb_name: self.op_config_cls[nb_name](**kvargs)}
