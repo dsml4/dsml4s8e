@@ -1,0 +1,18 @@
+[project]
+name = "my-cgf"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "motuzov",email = "motuzov@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+]
+
+[tool.poetry]
+packages = [{include = "my_cgf", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,4 +1,5 @@
-from dsml4s8e.job_composition import NbsJobComposition
+from pathlib import Path
+
 from dagstermill import local_output_notebook_io_manager
 from dagster import (
     job,
@@ -11,21 +12,28 @@ from dagster import (
     DagsterInstance,
     fs_io_manager,
     IOManager,
+    success_hook,
+    HookContext,
 )
-
-from pathlib import Path
-
 from dagstermill.manager import MANAGER_FOR_NOTEBOOK_INSTANCE
+
+from dsml4s8e.job_composition import NbsJobComposition
+from dsml4s8e.nb_op import NbOp
+
 
 _root_path = Path(__file__).parent.parent
 
 
-class PathIO(IOManager):
+class PathExistIO(IOManager):
     def handle_output(self, context, obj):
+        """
+        warning if not exist path
+        """
         context.log.info(obj)
 
     def load_input(self, context):
-        return "facke"
+        # context.asset_key
+        return "context.asset_key.to_string()"
 
 
 class SimplifiedConfig(Config):
@@ -53,17 +61,41 @@ def simplified_config(val: SimplifiedConfig) -> RunConfig:
     #     }
     # )
     return RunConfig(
-        ops={
-            **nbs_job_composition.make_config(nb_name="nb_0", a=val.a),
-            **nbs_job_composition.make_config(nb_name="nb_1", a=val.a),
-            **nbs_job_composition.make_config(nb_name="nb_2", b=val.b),
-        }
+        # ops={
+        #     **nbs_job_composition.make_config(nb_name="nb_0", a=val.a),
+        #     **nbs_job_composition.make_config(nb_name="nb_1", a=val.a),
+        #     **nbs_job_composition.make_config(nb_name="nb_2", b=val.b),
+        # }
+        ops=nbs_job_composition.make_config1(
+            {
+                "nb_0": {"a": 1},
+                "nb_1": {"a": 1},
+                "nb_2": {"b": 2},
+            }
+        )
+        # import dg_cfg
+        # ops= {
+        #         "nb_0": dg_cfg.NB0Cfg(a=1),
+        #         "nb_1": dg_cfg.NB1Cfg(a=1),
+        #         "nb_2": dg_cfg.NB2Cfg(b=2),
+        #     }
+        # )
     )
 
 
 my_custom_path_fs_io_manager = fs_io_manager.configured(
     {"base_dir": "/home/jovyan/work/daghome/storage/test"}
 )
+
+
+@success_hook
+def outs2downstreem_on_success(context: HookContext):
+    message = f"Op {context.op.name} finished successfully"
+    context.log.info(message)
+    context.log.info(NbOp.nb_outs[context.op.name])
+    NbOp.downstream(context.op.name)
+    # here we can rm tmp/nb
+    # context.resources.slack.chat_postMessage(channel="#foo", text=message)
 
 
 @job(
@@ -73,10 +105,11 @@ my_custom_path_fs_io_manager = fs_io_manager.configured(
     },
     resource_defs={
         "output_notebook_io_manager": local_output_notebook_io_manager,
-        "io_manager": PathIO(),
+        "io_manager": PathExistIO(),
     },
     metadata=nbs_job_composition.metadata,
     config=simplified_config,
+    hooks={outs2downstreem_on_success},
 )
 def dagstermill_pipeline():
     nbs_job_composition.do_compositioin()
@@ -93,8 +126,8 @@ defs = Definitions(
 
 if __name__ == "__main__":
     context = MANAGER_FOR_NOTEBOOK_INSTANCE.context
-    job = reconstructable(dagstermill_pipeline)
+    j = reconstructable(dagstermill_pipeline)
     res = execute_job(
-        job=job, instance=DagsterInstance.get(), run_config={"a": 110, "b": 22}
+        job=j, instance=DagsterInstance.get(), run_config={"a": 110, "b": 22}
     )
     print(res.run_id)
