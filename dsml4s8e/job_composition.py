@@ -45,7 +45,7 @@ class NbsJobComposition:
             nb = nbf.read(f, as_version=4)
 
         # Create a new code or markdown cell
-        new_cell = nbf.v4.new_code_cell("print('Injected offline!')")
+        new_cell = nbf.v4.new_code_cell("op.pass_outs_to_next_steps()")
         nb["cells"].append(new_cell)
 
         # Save the changes back
