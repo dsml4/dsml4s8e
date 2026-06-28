@@ -1,10 +1,8 @@
 from pathlib import Path
 from typing import Sequence
 from types import MappingProxyType
-import tempfile
 from functools import cached_property
-
-import nbformat as nbf
+import shutil
 
 from dagster import OpDefinition, MetadataValue, Config
 from dagster._core.definitions.composition import PendingNodeInvocation
@@ -37,42 +35,22 @@ class _JobInsOutsComposition:
 
 
 class NbsJobComposition:
-    def _tmp_nb(self, notebook_path: str) -> str:
-        # Load your notebook file
-        out_notebook_path = Path(notebook_path).name
-        self._temp_dir_obj = tempfile.TemporaryDirectory()
-        with open(notebook_path, "r", encoding="utf-8") as f:
-            nb = nbf.read(f, as_version=4)
-
-        # Create a new code or markdown cell
-        new_cell = nbf.v4.new_code_cell("op.pass_outs_to_next_steps()")
-        nb["cells"].append(new_cell)
-
-        # Save the changes back
-        with open(out_notebook_path, "w", encoding="utf-8") as f:
-            nbf.write(nb, f)
-        return out_notebook_path
-
     def __init__(self, root_path: Path, nbs_sequence: tuple[str]):
         self._def_op_kvargs_seq: list[dict[str, any]] = []
         self._job_metadata = {}
-        self._temp_dir_obj = tempfile.TemporaryDirectory()
+        self._src_nbs_path = root_path / ".src_nbs"
+        if self._src_nbs_path.exists():
+            shutil.rmtree(str(self._src_nbs_path))
+        self._src_nbs_path.mkdir(parents=True, exist_ok=True)
 
         for relative_nb_path in nbs_sequence:
             absolute_nb_path = root_path.joinpath(root_path, relative_nb_path)
-            with open(absolute_nb_path, "r", encoding="utf-8") as f:
-                nb = nbf.read(f, as_version=4)
-
-            outs2downstream_cell = nbf.v4.new_code_cell("op.pass_outs_to_next_steps()")
-            nb["cells"].append(outs2downstream_cell)
-            tmp_input_notebook_path = (
-                Path(self._temp_dir_obj.name) / Path(absolute_nb_path).name
-            )
-            with open(tmp_input_notebook_path, "w", encoding="utf-8") as f:
-                nbf.write(nb, f)
             self._def_op_kvargs_seq.append(
-                define_dagstermill_op_kvargs_from_nb(str(tmp_input_notebook_path))
+                define_dagstermill_op_kvargs_from_nb(
+                    nb_path=absolute_nb_path, tmp_src_nbs_path=self._src_nbs_path
+                )
             )
+
             self._job_metadata[relative_nb_path] = MetadataValue.notebook(
                 absolute_nb_path
             )
