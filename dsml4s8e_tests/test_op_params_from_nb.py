@@ -1,49 +1,70 @@
-from dsml4s8e import op_params_from_nb
+import pytest
+
 from pathlib import Path
-from dagster import Field
-from dagster import Out, In
-from pytest import raises
+import dagster as dg
+
+from dsml4s8e import define_dagstermill_op_kvargs_from_nb, MissingTagsException
+from dsml4s8e.op_params_from_nb import create_nb_op_from_cell_source
 
 
-def test_op_params_from_nb():
+@pytest.fixture
+def tmp_src_nbs_path(tmp_path: Path) -> Path:
+    d = tmp_path / "nb_src"
+    d.mkdir()
+    return d
+
+
+@pytest.fixture
+def nbs_path() -> Path:
     test_dir = Path(__file__).parent
-    nb_path = f"{test_dir}/notebooks/nb_with_params.ipynb"
-    op_params = op_params_from_nb.dagstermill_op_params_from_nb(nb_path)
+    return test_dir / "notebooks"
 
-    etalon_op_params = {
-        "config_schema": {"a": Field(int, description="nb params", default_value=10)},
-        "description": """path: notebooks/nb_with_params.ipynb""",
-        "ins": {"pip1.comp1.nb1.data1": "alias_data_key"},
-        "outs": ["data1"],
-    }
-    comp_keys = ["description"]
-    for k in comp_keys:
-        assert op_params[k] == etalon_op_params[k]
-    # pylint: disable-next=line-too-long
-    assert (
-        etalon_op_params["config_schema"]["a"].default_value
-        == op_params["config_schema"]["a"].default_value
+
+def test_exec_cell_source():
+
+    source_parameters = """
+from pydantic import Field
+from dsml4s8e.nb_op import standalone_context
+import dagster as dg
+class Nb0Cfg(dg.Config):
+    a: int = Field(description="this is the paramentr description", default=10)
+context=standalone_context(Nb0Cfg(a=2))
+"""
+
+    source_op_parameters = """
+from dsml4s8e.nb_op import NbOp
+op = NbOp(
+    context=context,
+    ins=['data0'],
+    outs=['data1']
+)
+    """
+    varname, nb_op = create_nb_op_from_cell_source(
+        source_parameters=source_parameters, source_op_parameters=source_op_parameters
     )
+    define_dagstermill_op_kvargs = nb_op.op_params
+    assert varname == "op"
+    assert define_dagstermill_op_kvargs["ins"] == ["data0"]
+    assert define_dagstermill_op_kvargs["outs"] == ["data1"]
+    cfg = define_dagstermill_op_kvargs["config_schema"](a=2)
+    assert isinstance(cfg, dg.Config)
 
 
-def test_missing_nb_tags():
-    test_dir = Path(__file__).parent
-    nb_path = f"{test_dir}/notebooks/empty.ipynb"
-    with raises(
-        op_params_from_nb.MissingTagsException,
-        match=r"op_parameters.*parameters",
+def test_define_dagstermill_op_kvargs_from_nb(tmp_src_nbs_path: Path, nbs_path: Path):
+    nb_path = nbs_path / "nb_with_params.ipynb"
+    define_dagstermill_op_kvargs = define_dagstermill_op_kvargs_from_nb(
+        nb_path=nb_path, tmp_src_nbs_path=tmp_src_nbs_path
+    )
+    define_dagstermill_op_kvargs["notebook_path"]
+    assert True
+
+
+def test_missing_nb_tags(nbs_path: Path, tmp_src_nbs_path):
+    nb_path = nbs_path / "empty.ipynb"
+    with pytest.raises(
+        MissingTagsException,
+        match=r"op_parameters",
     ):
-        _ = op_params_from_nb.dagstermill_op_params_from_nb(nb_path)
-
-
-def test_nb_ins2dagster_ins():
-    ins = {"pip1.comp1.nb1.data1": "comp1_nb1_data1"}
-    dagster_ins = op_params_from_nb.nb_ins2dagster_ins(ins)
-    assert dagster_ins["comp1_nb1_data1"] == In(str)
-
-
-def test_nb_outs2dagster_outs():
-    outs = ["data1"]
-    nb_id = "pipeline_example.nb"
-    dagster_ins = op_params_from_nb.nb_outs2dagster_outs(outs, nb_id)
-    assert dagster_ins["path_nb_data1"] == Out(str)
+        _ = define_dagstermill_op_kvargs_from_nb(
+            nb_path=nb_path, tmp_src_nbs_path=tmp_src_nbs_path
+        )

@@ -1,9 +1,10 @@
-from dataclasses import asdict
+from typing import Any
 import nbformat
 from dagster import Out, In
 from pathlib import Path
 
-import dsml4s8e.nb_op as op
+import dsml4s8e
+from dsml4s8e.nb_op import NbOp
 
 
 def get_cell_tags(cell):
@@ -14,17 +15,44 @@ def get_cell_tags(cell):
 
 class MissingTagsException(Exception):
     def __init__(self, nb_path, tags):
-        self.tags = tags
-        self.nb_path = nb_path
+        self._tags = tags
+        self._nb_path = nb_path
 
     def __str__(self):
-        return f"Missing tags: {self.tags} in {self.nb_path}"
+        return f"Missing tags: {self._tags} in {self._nb_path}"
+
+
+class SourceCodeError(Exception):
+    def __init__(self, source):
+        self._source = source
+
+    def __str__(self):
+        return f"Error in a cell tagged with the op_parameters: {self._source}"
+
+
+def missing_tags(nb_tags: set) -> set:
+    mandatory_tags = {"op_parameters", "parameters"}
+    return mandatory_tags - mandatory_tags.intersection(nb_tags)
+
+
+def create_nb_op_from_cell_source(
+    source_parameters: str, source_op_parameters: str
+) -> tuple[str, NbOp]:
+    exec(source_parameters, globals=globals())
+    exec(source_op_parameters, globals=globals())
+    nb_op_var_name, nb_op = next(
+        ((k, v) for k, v in globals().items() if isinstance(v, dsml4s8e.NbOp)),
+        (None, None),
+    )
+    if isinstance(nb_op_var_name, str) and isinstance(nb_op, dsml4s8e.NbOp):
+        return nb_op_var_name, nb_op
+    raise SourceCodeError(source_parameters)
 
 
 def define_dagstermill_op_kvargs_from_nb(
     nb_path: Path,
     tmp_src_nbs_path: Path,
-) -> dict[str, any]:
+) -> dict[str, Any]:
     """
     create kvargs for define_dagstermill_op:
     define_dagstermill_op(**args)
@@ -32,52 +60,50 @@ def define_dagstermill_op_kvargs_from_nb(
     with open(nb_path, "r", encoding="utf-8") as f:
         nb = nbformat.read(f, as_version=4)
     nb_tags = set()
-    kvargs = None
-    locals_ = {}
-    nbop_var_name = ""
+    nb_op_var_name = ""
+    kvargs = {}
+    parameters_cell_source = ""
     for cell in nb.cells:
         cell_tags = get_cell_tags(cell)
         nb_tags.update(cell_tags)
         if "parameters" in cell_tags:
-            exec(cell.source, locals=locals_)
-            print(locals_)
+            parameters_cell_source = cell.source
         if "op_parameters" in cell_tags:
-            # In this cell, the object of NbOp is created,
-            # and its parameters saved in NbOp._all_params
-            # to be available via the static method op.NbOp.params()
-            # see NbOp.__init__ and op.NbOp.params()
-            print("----op_parameters=")
-            print(locals_)
-            exec(cell.source, locals=locals_)
-            print(locals_)
-            nbop_var_name = next(
-                (v for k, v in locals_.items() if isinstance(v, op.NbOp)), None
+            if parameters_cell_source == "":
+                MissingTagsException(nb_path, missing_tags(nb_tags=set("parameters")))
+            nb_op_var_name, nb_op = create_nb_op_from_cell_source(
+                source_parameters=parameters_cell_source,
+                source_op_parameters=cell.source,
             )
-            # append cell with yield downstream
-            outs2downstream_cell = nbformat.v4.new_code_cell(
-                f"{nbop_var_name}.pass_outs_to_next_steps()"
-            )
-            nb["cells"].append(outs2downstream_cell)
+            kvargs = nb_op.op_params
 
-            tmp_input_notebook_path = tmp_src_nbs_path / nb_path.name
-            with open(tmp_src_nbs_path / nb_path.name, "w", encoding="utf-8") as f:
-                nbformat.write(nb, f)
-
-            kvargs = op.NbOp.get_curren_params()
-            op_name = Path(nb_path).stem
             if "ins" in kvargs:
                 kvargs["ins"] = {name: In(str) for name in kvargs["ins"]}
             if "outs" in kvargs:
                 kvargs["outs"] = {name: Out(str) for name in kvargs["outs"]}
-                op.NbOp.nb_outs[op_name] = asdict(op.NbOp.current.outs)
+
             #  create new tmp nb in tmp dir and add the downstream cel "op.downstream"
-            kvargs["notebook_path"] = str(tmp_input_notebook_path)
-            kvargs["name"] = op_name
+            kvargs["name"] = nb_path.stem
             kvargs["output_notebook_name"] = f"out_{kvargs['name']}"
             local_path = "/".join(str(nb_path).split("/")[-2:])
             kvargs["description"] = f"path: {local_path}"
-    mandatory_tags = {"op_parameters", "parameters"}
-    dsml_nb_tags = mandatory_tags.intersection(nb_tags)
-    if dsml_nb_tags == mandatory_tags:
-        return kvargs
-    raise MissingTagsException(nb_path, sorted(mandatory_tags - dsml_nb_tags))
+
+    if missing_tags(nb_tags=nb_tags):
+        raise MissingTagsException(nb_path, missing_tags(nb_tags=nb_tags))
+
+    if kvargs is None:
+        raise TypeError("kvargs is None")
+
+    if isinstance(kvargs, dict):
+        if "outs" in kvargs:
+            # append cell with yield downstream data
+            notebook_path_arg = str(tmp_src_nbs_path / nb_path.name)
+            outs2downstream_cell = nbformat.v4.new_code_cell(
+                f"{nb_op_var_name}.pass_outs_to_next_steps()"
+            )
+            nb["cells"].append(outs2downstream_cell)
+            with open(notebook_path_arg, "w", encoding="utf-8") as f:
+                nbformat.write(nb, f)
+            kvargs["notebook_path"] = notebook_path_arg
+
+    return kvargs
