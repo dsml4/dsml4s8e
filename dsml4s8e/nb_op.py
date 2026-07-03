@@ -1,25 +1,15 @@
-from typing import Dict, Tuple
-from types import SimpleNamespace
 from functools import cached_property
 from dataclasses import dataclass, make_dataclass, asdict
-import copy
 
 import dagster as dg
 import dagstermill
-from dagstermill import _load_input_parameter, DagstermillExecutionContext
-from dagstermill.manager import MANAGER_FOR_NOTEBOOK_INSTANCE
+from dagstermill import DagstermillExecutionContext
 
 
-def nb_path():
-    import ipynbname
-
-    print(ipynbname.path())
-
-
-def make_paths(out_names, out_paths) -> dataclass:
+def make_storage_catalog(names: list[str], paths: list[str]):
     return make_dataclass(
-        cls_name="StorageCatalog", fields=[(o, str) for o in out_names]
-    )(*out_paths)
+        cls_name="StorageCatalog", fields=[(name, str) for name in names]
+    )(*paths)
 
 
 class MissedInsParameters(Exception):
@@ -44,58 +34,58 @@ class NbDataCatalog:
     outs: object
 
 
-def standalone_context(cfg: dg.Config) -> DagstermillExecutionContext:
-    return dagstermill.get_context(cfg)
+def standalone_context(
+    op_onfig: dg.Config | None = None,
+) -> DagstermillExecutionContext:
+    return dagstermill.get_context(op_onfig)
 
 
 class NbOp:
-    def _paths(self, outs: list[str], run_id: str):
+    def create_catalog(self, names: list[str], run_id: str):
         root_path = f"s3://backet/path/{run_id}/"
-        return [root_path + out_name for out_name in outs]
-
-    current = None
+        paths = [root_path + out_name for out_name in names]
+        return make_storage_catalog(names=names, paths=paths)
 
     def __init__(
         self,
-        config_schema: type[dg.Config] = None,
-        ins: list[str] = None,
-        outs: list[str] = None,
+        context: DagstermillExecutionContext,
+        ins: list[str] | None = None,
+        outs: list[str] | None = None,
     ) -> None:
         """
         ins: [data1, data2] -> to catalog
         outs: output name(variable store the path to)
         """
         self._op_params = {}
-        if config_schema:
-            self._op_params["config_schema"] = config_schema
+        self.context = context
+        op_config = context.op_config
+        if op_config:
+            self._op_params["config_schema"] = type(op_config)
         if ins:
             self._op_params["ins"] = ins
         if outs:
             self._op_params["outs"] = outs
-        NbOp.current = self
 
-    @staticmethod
-    def get_curren_params() -> dict[str, dict]:
-        return copy.deepcopy(NbOp.current._op_params)
+    @property
+    def op_params(self) -> dict:
+        return self._op_params
+
+    @cached_property
+    def catalog(self) -> NbDataCatalog:
+        ins = None
+        outs = None
+        if "ins" in self._op_params:
+            ins = self.create_catalog(
+                names=self._op_params["ins"], run_id=self.context.run_id
+            )
+        if "outs" in self._op_params:
+            outs = self.create_catalog(
+                names=self._op_params["outs"], run_id=self.context.run_id
+            )
+        return NbDataCatalog(ins=ins, outs=outs)
 
     def pass_outs_to_next_steps(self):
-        for output_name, storage_path in asdict(self.outs).items():
+        if "outs" not in self._op_params:
+            return
+        for output_name, storage_path in asdict(self._op_params[""]).items():
             dagstermill.yield_result(value=storage_path, output_name=output_name)
-
-    def set_context(self, context: DagstermillExecutionContext):
-        self._context = context
-        if "ins" in self._op_params:
-            ins = self._op_params["ins"]
-            self.ins = make_paths(
-                ins, self._paths(outs=ins, run_id=self._context.run_id)
-            )
-
-        if "outs" in self._op_params:
-            outs = self._op_params["outs"]
-            self.outs = make_paths(
-                outs, self._paths(outs=outs, run_id=self._context.run_id)
-            )
-
-        self.cfg = self._context.op_config
-        if isinstance(self._context.op_config, dict):
-            self.cfg = SimpleNamespace(self._context.op_config)
