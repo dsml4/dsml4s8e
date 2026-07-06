@@ -4,5 +4,7 @@
     "python.testing.pytestArgs": [
         "dsml4s8e_tests"
     ],
-    "debugpy.debugJustMyCode": false
+    "debugpy.debugJustMyCode": false,
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda"
 }

@@ -21,3 +21,4 @@ sdist/
 
 .tox/
 .pytest_cache/
+.src_nbs/

@@ -22,7 +22,7 @@ class MissingTagsException(Exception):
         return f"Missing tags: {self._tags} in {self._nb_path}"
 
 
-class SourceCodeError(Exception):
+class CellSourceCodeError(Exception):
     def __init__(self, source):
         self._source = source
 
@@ -46,7 +46,7 @@ def create_nb_op_from_cell_source(
     )
     if isinstance(nb_op_var_name, str) and isinstance(nb_op, dsml4s8e.NbOp):
         return nb_op_var_name, nb_op
-    raise SourceCodeError(source_parameters)
+    raise CellSourceCodeError(source_op_parameters)
 
 
 def define_dagstermill_op_kvargs_from_nb(
@@ -62,17 +62,17 @@ def define_dagstermill_op_kvargs_from_nb(
     nb_tags = set()
     nb_op_var_name = ""
     kvargs = {}
-    parameters_cell_source = ""
+    cell_parameters_source = ""
     for cell in nb.cells:
         cell_tags = get_cell_tags(cell)
         nb_tags.update(cell_tags)
         if "parameters" in cell_tags:
-            parameters_cell_source = cell.source
+            cell_parameters_source = cell.source
         if "op_parameters" in cell_tags:
-            if parameters_cell_source == "":
-                MissingTagsException(nb_path, missing_tags(nb_tags=set("parameters")))
+            if not cell_parameters_source:
+                raise MissingTagsException(nb_path=nb_path, tags=["parameters"])
             nb_op_var_name, nb_op = create_nb_op_from_cell_source(
-                source_parameters=parameters_cell_source,
+                source_parameters=cell_parameters_source,
                 source_op_parameters=cell.source,
             )
             kvargs = nb_op.op_params
@@ -94,12 +94,14 @@ def define_dagstermill_op_kvargs_from_nb(
     if kvargs is None:
         raise TypeError("kvargs is None")
 
+    notebook_path_arg = str(tmp_src_nbs_path / nb_path.name)
+    kvargs["notebook_path"] = notebook_path_arg
+
     if isinstance(kvargs, dict):
         if "outs" in kvargs:
             # append cell with yield downstream data
-            notebook_path_arg = str(tmp_src_nbs_path / nb_path.name)
             outs2downstream_cell = nbformat.v4.new_code_cell(
-                f"{nb_op_var_name}.pass_outs_to_next_steps()"
+                f"{nb_op_var_name}._yield_output_paths()"
             )
             nb["cells"].append(outs2downstream_cell)
             with open(notebook_path_arg, "w", encoding="utf-8") as f:

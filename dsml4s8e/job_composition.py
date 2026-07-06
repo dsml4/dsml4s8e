@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Sequence
+from typing import Sequence, Any
 from types import MappingProxyType
 from functools import cached_property
 import shutil
@@ -35,8 +35,8 @@ class _JobInsOutsComposition:
 
 
 class NbsJobComposition:
-    def __init__(self, root_path: Path, nbs_sequence: tuple[str]):
-        self._def_op_kvargs_seq: list[dict[str, any]] = []
+    def __init__(self, root_path: Path, nbs_sequence: list[str]):
+        self._def_op_kvargs_seq: list[dict[str, Any]] = []
         self._job_metadata = {}
         self._src_nbs_path = root_path / ".src_nbs"
         if self._src_nbs_path.exists():
@@ -54,10 +54,6 @@ class NbsJobComposition:
             self._job_metadata[relative_nb_path] = MetadataValue.notebook(
                 absolute_nb_path
             )
-
-    def clear(self):
-        # Always provide an explicit close method to wipe data
-        self._temp_dir_obj.cleanup()
 
     @property
     def metadata(self):
@@ -88,19 +84,7 @@ class NbsJobComposition:
     def __call__(self):
         self.do_compositioin(save_notebook_on_failure=True)
 
-    def make_config(self, nb_name: str, **kvargs):
-        nb_config = {
-            "nb_0": {"a": 1},
-            "nb_1": {"a": 1},
-            "nb_2": {"b": 2},
-        }
-        {
-            nb_name: self.op_config_cls[nb_name](**nb_config[nb_name])
-            for nb_name in nb_config
-        }
-        return {nb_name: self.op_config_cls[nb_name](**kvargs)}
-
-    def make_config1(self, ops_configs: dict[str, dict]) -> dict[str, Config]:
+    def config_mapping(self, ops_configs: dict[str, dict]) -> dict[str, Config]:
         return {
             nb_name: self.op_config_cls[nb_name](**ops_configs[nb_name])
             for nb_name in self.op_config_cls

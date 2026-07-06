@@ -1,14 +1,23 @@
 from functools import cached_property
-from dataclasses import dataclass, make_dataclass, asdict
+from types import SimpleNamespace
+from dataclasses import make_dataclass, asdict, dataclass
+
 
 import dagster as dg
 import dagstermill
 from dagstermill import DagstermillExecutionContext
 
 
-def make_storage_catalog(names: list[str], paths: list[str]):
+@dataclass
+class StorageCatalog:
+    pass
+
+
+def make_storage_catalog(names: list[str], paths: list[str]) -> StorageCatalog:
     return make_dataclass(
-        cls_name="StorageCatalog", fields=[(name, str) for name in names]
+        cls_name="StorageCatalog",
+        fields=[(name, str) for name in names],
+        bases=(StorageCatalog,),
     )(*paths)
 
 
@@ -28,16 +37,10 @@ class MissedInsParameters(Exception):
         super().__init__(self.message)
 
 
-@dataclass(frozen=True)
-class NbDataCatalog:
-    ins: object
-    outs: object
-
-
 def standalone_context(
-    op_onfig: dg.Config | None = None,
+    op_config: dg.Config | None = None,
 ) -> DagstermillExecutionContext:
-    return dagstermill.get_context(op_onfig)
+    return dagstermill.get_context(op_config)
 
 
 class NbOp:
@@ -70,22 +73,30 @@ class NbOp:
     def op_params(self) -> dict:
         return self._op_params
 
+    @property
+    def cfg(self):
+        if isinstance(self.context.op_config, dict):
+            return SimpleNamespace(self.context.op_config)
+        return self.context.op_config
+
     @cached_property
-    def catalog(self) -> NbDataCatalog:
-        ins = None
-        outs = None
+    def ins(self) -> StorageCatalog | None:
         if "ins" in self._op_params:
-            ins = self.create_catalog(
+            return self.create_catalog(
                 names=self._op_params["ins"], run_id=self.context.run_id
             )
+        return None
+
+    @cached_property
+    def outs(self) -> StorageCatalog | None:
         if "outs" in self._op_params:
-            outs = self.create_catalog(
+            return self.create_catalog(
                 names=self._op_params["outs"], run_id=self.context.run_id
             )
-        return NbDataCatalog(ins=ins, outs=outs)
+        return None
 
-    def pass_outs_to_next_steps(self):
-        if "outs" not in self._op_params:
+    def _yield_output_paths(self):
+        if self.outs is None:
             return
-        for output_name, storage_path in asdict(self._op_params[""]).items():
+        for output_name, storage_path in asdict(self.outs).items():
             dagstermill.yield_result(value=storage_path, output_name=output_name)

@@ -53,26 +53,12 @@ nbs_job_composition = NbsJobComposition(
 
 @config_mapping
 def simplified_config(val: SimplifiedConfig) -> RunConfig:
-    # return RunConfig(
-    #     ops={
-    #         "nb_0": nbs_job_composition.ops_configs["nb_0"](a=val.a),
-    #         "nb_1": nbs_job_composition.ops_configs["nb_1"](a=val.a),
-    #         "nb_2": nbs_job_composition.ops_configs["nb_2"](b=val.b),
-    #     }
-    # )
     return RunConfig(
-        # ops={
-        #     **nbs_job_composition.make_config(nb_name="nb_0", a=val.a),
-        #     **nbs_job_composition.make_config(nb_name="nb_1", a=val.a),
-        #     **nbs_job_composition.make_config(nb_name="nb_2", b=val.b),
-        # }
-        ops=nbs_job_composition.make_config1(
-            {
-                "nb_0": {"a": 1},
-                "nb_1": {"a": 1},
-                "nb_2": {"b": 2},
-            }
-        )
+        ops={
+            "nb_0": {"config": {"a": 1}},
+            "nb_1": {"config": {"a": 1}},
+            "nb_2": {"config": {"b": 2}},
+        }
         # import dg_cfg
         # ops= {
         #         "nb_0": dg_cfg.NB0Cfg(a=1),
@@ -88,18 +74,8 @@ my_custom_path_fs_io_manager = fs_io_manager.configured(
 )
 
 
-@success_hook
-def outs2downstreem_on_success(context: HookContext):
-    message = f"Op {context.op.name} finished successfully"
-    context.log.info(message)
-    context.log.info(NbOp.nb_outs[context.op.name])
-    NbOp.downstream(context.op.name)
-    # here we can rm tmp/nb
-    # context.resources.slack.chat_postMessage(channel="#foo", text=message)
-
-
 @job(
-    name="dagstermill_pipeline",
+    name="nb_pipeline",
     tags={
         "cdlc_stage": "dev",
     },
@@ -109,14 +85,13 @@ def outs2downstreem_on_success(context: HookContext):
     },
     metadata=nbs_job_composition.metadata,
     config=simplified_config,
-    hooks={outs2downstreem_on_success},
 )
-def dagstermill_pipeline():
+def nb_pipeline():
     nbs_job_composition.do_compositioin()
 
 
 defs = Definitions(
-    jobs=[dagstermill_pipeline],
+    jobs=[nb_pipeline],
     resources={
         "output_notebook_io_manager": local_output_notebook_io_manager,
         # "io_manager": my_custom_path_fs_io_manager,
@@ -126,7 +101,7 @@ defs = Definitions(
 
 if __name__ == "__main__":
     context = MANAGER_FOR_NOTEBOOK_INSTANCE.context
-    j = reconstructable(dagstermill_pipeline)
+    j = reconstructable(nb_pipeline)
     res = execute_job(
         job=j, instance=DagsterInstance.get(), run_config={"a": 110, "b": 22}
     )

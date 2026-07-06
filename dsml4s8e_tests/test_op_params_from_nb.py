@@ -26,14 +26,17 @@ def test_exec_cell_source():
 from pydantic import Field
 from dsml4s8e.nb_op import standalone_context
 import dagster as dg
+from dsml4s8e.nb_op import NbOp
 class Nb0Cfg(dg.Config):
     a: int = Field(description="this is the paramentr description", default=10)
 context=standalone_context(Nb0Cfg(a=2))
 """
 
     source_op_parameters = """
-from dsml4s8e.nb_op import NbOp
-op = NbOp(
+class MyNbOp(NbOp):
+    def create_catalog(self, names: list[str], run_id: str):
+        super().create_catalog(names, run_id)
+op = MyNbOp(
     context=context,
     ins=['data0'],
     outs=['data1']
