@@ -12,8 +12,6 @@ from dagster import (
     DagsterInstance,
     fs_io_manager,
     IOManager,
-    success_hook,
-    HookContext,
 )
 from dagstermill.manager import MANAGER_FOR_NOTEBOOK_INSTANCE
 
@@ -69,11 +67,6 @@ def simplified_config(val: SimplifiedConfig) -> RunConfig:
     )
 
 
-my_custom_path_fs_io_manager = fs_io_manager.configured(
-    {"base_dir": "/home/jovyan/work/daghome/storage/test"}
-)
-
-
 @job(
     name="nb_pipeline",
     tags={
@@ -94,7 +87,6 @@ defs = Definitions(
     jobs=[nb_pipeline],
     resources={
         "output_notebook_io_manager": local_output_notebook_io_manager,
-        # "io_manager": my_custom_path_fs_io_manager,
     },
 )
 
